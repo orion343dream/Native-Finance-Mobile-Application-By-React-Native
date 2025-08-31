@@ -1,16 +1,17 @@
 
 export interface Transaction {
-    id: string;
-    amount: number;
-    category: string;
-    description: string;
-    type: 'expense' | 'income';
-    date: string;
-  }
-  
-  export interface User {
-    id: string;
-    email: string;
-    name: string;
-  }
-  
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+  type: 'expense' | 'income';
+  date: string;
+  createdAt?: any; // Firestore Timestamp
+  userId?: string;
+}
+
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  name: string | null;
+}
