@@ -1,25 +1,36 @@
 
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { StyleSheet } from 'react-native';
+import React from 'react';
+import { StyleSheet, View, Text } from 'react-native';
+import { useTransactions } from '@/src/transactions/TransactionsContext';
+import { useMemo } from 'react';
 
 export default function RecentTransactions() {
+  const { transactions } = useTransactions();
+
+  const recentTransactions = useMemo(() => {
+    // Filter out income if you only want expenses, or adjust as needed
+    return transactions.slice(0, 3); // Get top 3 most recent
+  }, [transactions]);
+
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="subtitle">Recent Transactions</ThemedText>
-      <ThemedView style={styles.transaction}>
-        <ThemedText>Groceries</ThemedText>
-        <ThemedText>-$50</ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.transaction}>
-        <ThemedText>Salary</ThemedText>
-        <ThemedText>+$2,000</ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.transaction}>
-        <ThemedText>Dinner</ThemedText>
-        <ThemedText>-$30</ThemedText>
-      </ThemedView>
-    </ThemedView>
+    <View style={styles.container}>
+      <Text style={styles.subtitle}>Recent Transactions</Text>
+      {recentTransactions.length > 0 ? (
+        recentTransactions.map(t => (
+          <View key={t.id} style={styles.transaction}>
+            <View>
+              <Text style={styles.description}>{t.description}</Text>
+              <Text style={styles.categoryDate}>{t.category} - {t.date}</Text>
+            </View>
+            <Text style={t.type === 'income' ? styles.income : styles.expense}>
+              {t.type === 'income' ? '+' : '-'} ${t.amount.toFixed(2)}
+            </Text>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.emptyText}>No recent transactions.</Text>
+      )}
+    </View>
   );
 }
 
@@ -34,13 +45,46 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 3,
+    marginHorizontal: 16,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1e293b',
   },
   transaction: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
   },
+  description: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#334155',
+  },
+  categoryDate: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  income: {
+    color: '#10b981',
+    fontWeight: 'bold',
+  },
+  expense: {
+    color: '#ef4444',
+    fontWeight: 'bold',
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#64748b',
+    marginTop: 10,
+  }
 });
