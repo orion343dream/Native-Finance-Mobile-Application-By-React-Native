@@ -69,9 +69,6 @@ const DashboardScreen = () => {
           <Text style={styles.greeting}>Hello, {user?.name || 'User'}!</Text>
           <Text style={styles.subGreeting}>Welcome to your financial hub.</Text>
         </View>
-        <TouchableOpacity onPress={logout}>
-          <Ionicons name="log-out-outline" size={28} color="#ef4444" />
-        </TouchableOpacity>
       </View>
 
       <SpendingAnalysis />

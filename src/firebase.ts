@@ -1,7 +1,9 @@
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, initializeAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -17,5 +19,19 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+let authInstance;
+try {
+  // Dynamically require to avoid type/resolve issues if subpath is missing
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { getReactNativePersistence } = require('firebase/auth/react-native');
+  authInstance = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (e) {
+  // Fallback to default auth without persistence if RN helpers are unavailable
+  authInstance = getAuth(app);
+}
+
+export const auth = authInstance;
 export const db = getFirestore(app);
+
