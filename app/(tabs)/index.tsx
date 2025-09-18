@@ -92,7 +92,7 @@ const DashboardScreen = () => {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.addButton} onPress={() => router.push('/transactions?openForm=true')}>
+      <TouchableOpacity style={styles.addButton} onPress={() => router.push('/transactions')}>
         <Ionicons name="add-circle" size={22} color="white" />
         <Text style={styles.addButtonText}>Add New Transaction</Text>
       </TouchableOpacity>

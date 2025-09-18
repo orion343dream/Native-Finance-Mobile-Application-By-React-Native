@@ -4,7 +4,9 @@ import { useTransactions } from '@/src/transactions/TransactionsContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+// @ts-expect-error: installed via expo install, types provided by RN community package
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // A more detailed transaction item
 interface TransactionItemProps {
@@ -19,7 +21,7 @@ const TransactionItem = ({ transaction, onDelete, onEdit }: TransactionItemProps
       <Text style={styles.transactionSub}>{transaction.category} | {transaction.date}</Text>
     </View>
     <Text style={[styles.transactionAmount, transaction.type === 'income' ? styles.income : styles.expense]}>
-      {transaction.type === 'income' ? '+' : '-'} LKR {transaction.amount.toFixed(2)}
+      {transaction.type === 'income' ? '+' : '-'} {transaction.amount.toFixed(2)} LKR
     </Text>
     <View style={styles.transactionActions}>
         <TouchableOpacity onPress={() => onEdit(transaction)} style={styles.actionButton}>
@@ -51,6 +53,8 @@ export default function TransactionsScreen() {
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [date, setDate] = useState<string>('');
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [dateObj, setDateObj] = useState<Date>(new Date());
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -71,6 +75,13 @@ export default function TransactionsScreen() {
       setShowAddPrompt(true);
     }
   }, [params]);
+
+  // Default date to today on mount
+  useEffect(() => {
+    const today = new Date();
+    setDate(today.toISOString().split('T')[0]);
+    setDateObj(today);
+  }, []);
 
   const resetForm = () => {
     setType('');
@@ -176,9 +187,14 @@ export default function TransactionsScreen() {
           <View style={styles.formRow}>
             <Text style={styles.label}>Add Custom Category</Text>
             <View style={styles.customRow}>
-              <TouchableOpacity activeOpacity={1} style={styles.customInputBox}>
-                <Text style={styles.customInputPlaceholder}>{customCategory || 'Enter new category'}</Text>
-              </TouchableOpacity>
+              <TextInput
+                style={styles.customInputBox}
+                placeholder="Enter new category"
+                placeholderTextColor="#94a3b8"
+                value={customCategory}
+                onChangeText={setCustomCategory}
+                returnKeyType="done"
+              />
               <TouchableOpacity onPress={handleAddCustomCategory} style={styles.addCatButton}>
                 <Text style={styles.addCatButtonText}>Add</Text>
               </TouchableOpacity>
@@ -188,23 +204,53 @@ export default function TransactionsScreen() {
 
         <View style={styles.formRow}>
           <Text style={styles.label}>Description</Text>
-          <TouchableOpacity activeOpacity={1} style={styles.textInputBox}>
-            <Text style={styles.textInputPlaceholder}>{description || 'Description'}</Text>
-          </TouchableOpacity>
+          <TextInput
+            style={styles.textInputBox}
+            placeholder="Description"
+            placeholderTextColor="#94a3b8"
+            value={description}
+            onChangeText={setDescription}
+            returnKeyType="next"
+          />
         </View>
 
         <View style={styles.formRowInline}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={styles.label}>Amount (LKR)</Text>
-            <TouchableOpacity activeOpacity={1} style={styles.textInputBox}>
-              <Text style={styles.textInputPlaceholder}>{amount || '0.00'}</Text>
-            </TouchableOpacity>
+            <TextInput
+              style={styles.textInputBox}
+              placeholder="0.00"
+              placeholderTextColor="#94a3b8"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="decimal-pad"
+              returnKeyType="next"
+            />
           </View>
           <View style={{ flex: 1, marginLeft: 8 }}>
             <Text style={styles.label}>Date</Text>
-            <TouchableOpacity activeOpacity={1} style={styles.textInputBox}>
-              <Text style={styles.textInputPlaceholder}>{date || 'YYYY-MM-DD'}</Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.textInputBox}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={{ color: date ? '#0f172a' : '#94a3b8' }}>{date || 'YYYY-MM-DD'}</Text>
             </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={dateObj}
+                mode="date"
+                display="default"
+                onChange={(event: unknown, selectedDate?: Date) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) {
+                    setDateObj(selectedDate);
+                    const iso = selectedDate.toISOString().split('T')[0];
+                    setDate(iso);
+                  }
+                }}
+              />)
+            }
           </View>
         </View>
 
