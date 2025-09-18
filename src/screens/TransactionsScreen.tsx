@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Button, TextInput } from 'react-native';
+import { Button, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTransactions } from '../transactions/TransactionsContext';
 import { Transaction } from '../types';
 
@@ -32,7 +32,7 @@ const TransactionsScreen = () => {
             </View>
             <View style={{alignItems: 'flex-end'}}>
               <Text style={{ color: item.type === 'income' ? 'green' : 'red' }}>
-                {item.type === 'income' ? '+' : '-'}${item.amount.toFixed(2)}
+                {item.type === 'income' ? '+' : '-'} LKR {item.amount.toFixed(2)}
               </Text>
               <Text>{item.date}</Text>
               <View style={{flexDirection: 'row'}}>

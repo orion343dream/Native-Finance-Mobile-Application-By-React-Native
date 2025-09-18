@@ -1,8 +1,8 @@
 
-import React from 'react';
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/auth/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
+import React from 'react';
 
 export default function TabLayout() {
   const { user } = useAuth();
@@ -17,8 +17,6 @@ export default function TabLayout() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'transactions') {
             iconName = focused ? 'list' : 'list-outline';
-          } else if (route.name === 'analysis') {
-            iconName = focused ? 'pie-chart' : 'pie-chart-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -38,12 +36,6 @@ export default function TabLayout() {
         name="transactions"
         options={{
           title: 'Transactions',
-        }}
-      />
-      <Tabs.Screen
-        name="analysis"
-        options={{
-          title: 'Analysis',
         }}
       />
     </Tabs>

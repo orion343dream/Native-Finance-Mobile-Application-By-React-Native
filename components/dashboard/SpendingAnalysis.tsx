@@ -1,13 +1,13 @@
 
-import React, { useMemo } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
+import React, { useMemo } from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
 
 const { width } = Dimensions.get('window');
 
 // Pre-defined colors for categories for a better look
-const categoryColors = {
+const categoryColors: Record<string, string> = {
     Food: '#f59e0b', // amber-500
     Transport: '#3b82f6', // blue-500
     Shopping: '#8b5cf6', // violet-500
@@ -22,10 +22,13 @@ export default function SpendingAnalysis() {
 
   const { pieChartData, categoryTotals } = useMemo(() => {
     const expenseTransactions = transactions.filter(t => t.type === 'expense');
-    const categoryTotals = expenseTransactions.reduce((acc, t) => {
-      acc[t.category] = (acc[t.category] || 0) + t.amount;
-      return acc;
-    }, {});
+    const categoryTotals: Record<string, number> = expenseTransactions.reduce(
+      (acc: Record<string, number>, t) => {
+        acc[t.category] = (acc[t.category] || 0) + t.amount;
+        return acc;
+      },
+      {}
+    );
 
     const pieChartData = Object.keys(categoryTotals).map(category => ({
       name: category,
@@ -76,7 +79,7 @@ export default function SpendingAnalysis() {
                 <View style={[styles.colorSquare, { backgroundColor: categoryColors[category] || categoryColors.Other }]} />
                 <Text style={styles.categoryText}>{category}</Text>
             </View>
-            <Text style={styles.categoryAmount}>$ {categoryTotals[category].toFixed(2)}</Text>
+            <Text style={styles.categoryAmount}>LKR {categoryTotals[category].toFixed(2)}</Text>
           </View>
         ))}
       </View>

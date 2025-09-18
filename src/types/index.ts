@@ -14,4 +14,8 @@ export interface UserProfile {
   uid: string;
   email: string | null;
   name: string | null;
+  customCategories?: {
+    expense?: string[];
+    income?: string[];
+  };
 }

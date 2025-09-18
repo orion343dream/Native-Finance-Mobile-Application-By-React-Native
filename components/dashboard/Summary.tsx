@@ -1,8 +1,7 @@
 
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function Summary() {
   const { transactions } = useTransactions();
@@ -22,15 +21,15 @@ export default function Summary() {
       <Text style={styles.subtitle}>Summary</Text>
       <View style={styles.row}>
         <Text>Income</Text>
-        <Text style={styles.incomeText}>${totalIncome.toFixed(2)}</Text>
+        <Text style={styles.incomeText}>LKR {totalIncome.toFixed(2)}</Text>
       </View>
       <View style={styles.row}>
         <Text>Expenses</Text>
-        <Text style={styles.expenseText}>${totalExpenses.toFixed(2)}</Text>
+        <Text style={styles.expenseText}>LKR {totalExpenses.toFixed(2)}</Text>
       </View>
       <View style={styles.row}>
         <Text>Balance</Text>
-        <Text style={styles.balanceText}>${balance.toFixed(2)}</Text>
+        <Text style={styles.balanceText}>LKR {balance.toFixed(2)}</Text>
       </View>
     </View>
   );

@@ -4,7 +4,7 @@
     "slug": "nativefinanceapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/Gemini_Generated_Image_4iaitt4iaitt4iai.png",
     "scheme": "nativefinanceapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,22 +13,23 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/Gemini_Generated_Image_4iaitt4iaitt4iai.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.orion343.nativefinanceapp"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/Gemini_Generated_Image_4iaitt4iaitt4iai.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/Gemini_Generated_Image_4iaitt4iaitt4iai.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -38,7 +39,12 @@
     "experiments": {
       "typedRoutes": true
     },
-    "sdkVersion": "53.0.0"
-  },
-  "name": "nativefinanceapp"
+    "sdkVersion": "53.0.0",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a4a37151-2cac-40ab-bd53-fc4418e8c68a"
+      }
+    }
+  }
 }

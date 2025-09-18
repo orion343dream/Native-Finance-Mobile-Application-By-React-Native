@@ -1,9 +1,9 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db } from '../firebase';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
+import { auth, db } from '../firebase';
 import { UserProfile } from '../types';
 
 interface AuthContextType {
@@ -12,6 +12,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserCustomCategories?: (userId: string, type: 'expense' | 'income', categories: string[]) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -33,14 +34,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               name: userDoc.data().name,
+              customCategories: userDoc.data().customCategories,
             });
           } else {
             // Fallback if user doc doesn't exist (e.g., new user just signed up)
-            setUser({
+            const newUser: UserProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               name: firebaseUser.email?.split('@')[0] || 'User',
-            });
+              customCategories: { expense: [], income: [] },
+            };
+            await setDoc(userDocRef, newUser, { merge: true });
+            setUser(newUser);
           }
         } else {
           setUser(null);
@@ -72,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await setDoc(doc(db, 'users', firebaseUser.uid), {
         name: name,
         email: email,
+        customCategories: { expense: [], income: [] },
       });
     } catch (error: any) {
       let errorMessage = 'An unexpected error occurred. Please try again.';
@@ -91,8 +97,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await signOut(auth);
   };
 
+  const updateUserCustomCategories = async (
+    userId: string,
+    type: 'expense' | 'income',
+    categories: string[]
+  ) => {
+    const userDocRef = doc(db, 'users', userId);
+    await updateDoc(userDocRef, { [`customCategories.${type}`]: categories });
+    setUser(prev => prev ? { ...prev, customCategories: { ...(prev.customCategories || {}), [type]: categories } } : prev);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUserCustomCategories }}>
       {children}
     </AuthContext.Provider>
   );

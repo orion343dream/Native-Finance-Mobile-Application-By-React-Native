@@ -1,8 +1,8 @@
 
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
-import { PieChart } from 'react-native-chart-kit';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
+import React, { useMemo, useState } from 'react';
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
 
 const { width } = Dimensions.get('window');
 
@@ -94,7 +94,7 @@ const AnalysisScreen = () => {
                 <View style={[styles.colorSquare, { backgroundColor: categoryColors[category] || categoryColors.Other }]} />
                 <Text style={styles.categoryText}>{category}</Text>
             </View>
-            <Text style={styles.categoryAmount}>$ {analysisData.categoryTotals[category].toFixed(2)}</Text>
+                         <Text style={styles.categoryAmount}>LKR {analysisData.categoryTotals[category].toFixed(2)}</Text>
           </View>
         ))}
       </View>

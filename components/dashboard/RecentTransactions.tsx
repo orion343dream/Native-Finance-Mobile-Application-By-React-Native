@@ -1,8 +1,7 @@
 
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function RecentTransactions() {
   const { transactions } = useTransactions();
@@ -23,7 +22,7 @@ export default function RecentTransactions() {
               <Text style={styles.categoryDate}>{t.category} - {t.date}</Text>
             </View>
             <Text style={t.type === 'income' ? styles.income : styles.expense}>
-              {t.type === 'income' ? '+' : '-'} ${t.amount.toFixed(2)}
+              {t.type === 'income' ? '+' : '-'} LKR {t.amount.toFixed(2)}
             </Text>
           </View>
         ))
