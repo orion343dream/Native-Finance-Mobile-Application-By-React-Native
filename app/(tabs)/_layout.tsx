@@ -51,7 +51,7 @@ function AppHeader() {
                 <View
                   style={{
                     position: 'absolute',
-                    top: statusPad + 20,
+                    top: statusPad + 40,
                     right: 4,
                     backgroundColor: 'white',
                     borderRadius: 8,

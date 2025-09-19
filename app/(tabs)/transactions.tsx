@@ -1,12 +1,13 @@
 
 import { useAuth } from '@/src/auth/AuthContext';
+import { colors, gradients, radius, spacing, typography } from '@/src/theme';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-// @ts-expect-error: installed via expo install, types provided by RN community package
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 // A more detailed transaction item
 interface TransactionItemProps {
@@ -154,6 +155,7 @@ export default function TransactionsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <LinearGradient colors={gradients.screen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
       {/* Inline Add/Edit Form */}
       <View style={styles.formCard}>
         <Text style={styles.formTitle}>{isEditing ? 'Edit Transaction' : 'Add New Transaction'}</Text>
@@ -310,64 +312,65 @@ export default function TransactionsScreen() {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={<Text style={styles.emptyText}>No transactions found.</Text>}
       />
+      </LinearGradient>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9', padding: 16 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#1e293b', marginBottom: 16 },
-  filterContainer: { flexDirection: 'row', marginBottom: 16, justifyContent: 'center' },
-  filterButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#e2e8f0', marginHorizontal: 4 },
-  activeFilter: { backgroundColor: '#059669' },
-  filterText: { color: '#475569', fontWeight: '600' },
+  container: { flex: 1, backgroundColor: colors.background, padding: spacing.md },
+  title: { ...typography.title, marginBottom: spacing.md },
+  filterContainer: { flexDirection: 'row', marginBottom: spacing.md, justifyContent: 'center' },
+  filterButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#1e293b', marginHorizontal: 4, borderWidth: 1, borderColor: colors.border },
+  activeFilter: { backgroundColor: colors.income },
+  filterText: { color: colors.textSecondary, fontWeight: '600' },
   activeFilterText: { color: 'white' },
-  transactionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', padding: 12, borderRadius: 8, marginBottom: 8 },
+  transactionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 12, borderRadius: radius.md, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
   transactionDetails: { flex: 1 },
-  transactionDesc: { fontSize: 16, fontWeight: '500', color: '#334155' },
-  transactionSub: { fontSize: 12, color: '#64748b' },
-  transactionAmount: { fontSize: 16, fontWeight: 'bold', marginHorizontal: 8 },
-  income: { color: '#10b981' },
-  expense: { color: '#ef4444' },
+  transactionDesc: { fontSize: 16, fontWeight: '500', color: colors.textPrimary },
+  transactionSub: { fontSize: 12, color: colors.textSecondary },
+  transactionAmount: { fontSize: 16, fontWeight: 'bold', marginHorizontal: 8, color: colors.textPrimary },
+  income: { color: colors.income },
+  expense: { color: colors.expense },
   transactionActions: { flexDirection: 'row' },
   actionButton: { padding: 8 },
-  emptyText: { textAlign: 'center', marginTop: 20, color: '#64748b' },
-  formCard: { backgroundColor: 'white', padding: 16, borderRadius: 12, marginBottom: 16 },
-  formTitle: { fontSize: 18, fontWeight: '700', color: '#1e293b', marginBottom: 12 },
+  emptyText: { textAlign: 'center', marginTop: 20, color: colors.textSecondary },
+  formCard: { backgroundColor: colors.card, padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border },
+  formTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
   formRow: { marginBottom: 12 },
   formRowInline: { flexDirection: 'row', marginBottom: 12 },
-  label: { fontSize: 13, color: '#64748b', marginBottom: 6 },
+  label: { ...typography.label, marginBottom: 6 },
   chipsRow: { flexDirection: 'row' },
-  chip: { paddingVertical: 8, paddingHorizontal: 14, backgroundColor: '#e2e8f0', borderRadius: 20, marginRight: 8 },
-  chipActive: { backgroundColor: '#059669' },
-  chipText: { color: '#334155', fontWeight: '600' },
+  chip: { paddingVertical: 8, paddingHorizontal: 14, backgroundColor: '#1e293b', borderRadius: 20, marginRight: 8, borderWidth: 1, borderColor: colors.border },
+  chipActive: { backgroundColor: colors.income },
+  chipText: { color: colors.textSecondary, fontWeight: '600' },
   chipTextActive: { color: 'white' },
   categoriesWrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  categoryPill: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: '#e2e8f0', borderRadius: 20, marginRight: 8, marginBottom: 8 },
-  categoryPillActive: { backgroundColor: '#059669' },
-  categoryPillText: { color: '#334155', fontWeight: '600' },
+  categoryPill: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: '#1e293b', borderRadius: 20, marginRight: 8, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
+  categoryPillActive: { backgroundColor: colors.income },
+  categoryPillText: { color: colors.textSecondary, fontWeight: '600' },
   categoryPillTextActive: { color: 'white' },
-  textInputBox: { backgroundColor: '#f1f5f9', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8 },
+  textInputBox: { backgroundColor: '#0b1222', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary },
   textInputPlaceholder: { color: '#94a3b8' },
   customRow: { flexDirection: 'row', alignItems: 'center' },
-  customInputBox: { flex: 1, backgroundColor: '#f1f5f9', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, marginRight: 8 },
+  customInputBox: { flex: 1, backgroundColor: '#0b1222', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, marginRight: 8, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary },
   customInputPlaceholder: { color: '#94a3b8' },
-  addCatButton: { backgroundColor: '#059669', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
+  addCatButton: { backgroundColor: colors.income, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
   addCatButtonText: { color: 'white', fontWeight: '700' },
   actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  primaryButton: { flex: 1, backgroundColor: '#059669', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginRight: 8 },
+  primaryButton: { flex: 1, backgroundColor: colors.income, paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginRight: 8 },
   primaryButtonText: { color: 'white', fontWeight: '700' },
-  secondaryButton: { flex: 1, backgroundColor: '#e2e8f0', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginLeft: 8 },
-  secondaryButtonText: { color: '#334155', fontWeight: '700' },
+  secondaryButton: { flex: 1, backgroundColor: '#1e293b', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginLeft: 8, borderWidth: 1, borderColor: colors.border },
+  secondaryButtonText: { color: colors.textPrimary, fontWeight: '700' },
   // Simple inline modal styles
   modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
-  modalCard: { width: '85%', backgroundColor: 'white', borderRadius: 12, padding: 16 },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: '#1e293b', marginBottom: 6, textAlign: 'center' },
-  modalText: { fontSize: 14, color: '#475569', textAlign: 'center', marginBottom: 16 },
+  modalCard: { width: '85%', backgroundColor: colors.card, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: colors.border },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 6, textAlign: 'center' },
+  modalText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginBottom: 16 },
   modalActions: { flexDirection: 'row', justifyContent: 'space-between' },
   modalButton: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  modalPrimary: { backgroundColor: '#059669', marginRight: 8 },
-  modalSecondary: { backgroundColor: '#e2e8f0', marginLeft: 8 },
+  modalPrimary: { backgroundColor: colors.income, marginRight: 8 },
+  modalSecondary: { backgroundColor: '#1e293b', marginLeft: 8, borderWidth: 1, borderColor: colors.border },
   modalPrimaryText: { color: 'white', fontWeight: '700' },
-  modalSecondaryText: { color: '#334155', fontWeight: '700' },
+  modalSecondaryText: { color: colors.textPrimary, fontWeight: '700' },
 });

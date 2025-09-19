@@ -1,5 +1,7 @@
 
+import { colors, gradients, radius, spacing, typography } from '@/src/theme';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
@@ -55,7 +57,8 @@ const AnalysisScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Expense Analysis</Text>
+      <LinearGradient colors={gradients.screen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
+      <Text style={styles.title}>Financial Analysis</Text>
 
       <View style={styles.filterContainer}>
         <TouchableOpacity onPress={() => setFilterDays(7)} style={[styles.filterButton, filterDays === 7 && styles.activeFilter]}>
@@ -70,18 +73,23 @@ const AnalysisScreen = () => {
       </View>
 
       {analysisData.pieChartData.length > 0 ? (
-        <PieChart
-          data={analysisData.pieChartData}
-          width={width - 16}
-          height={220}
-          chartConfig={{
-            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          }}
-          accessor={"population"}
-          backgroundColor={"transparent"}
-          paddingLeft={"15"}
-          absolute // Show absolute values instead of percentages
-        />
+        <View style={styles.card}>
+          <PieChart
+            data={analysisData.pieChartData}
+            width={width - 32}
+            height={220}
+            chartConfig={{
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(148, 163, 184, ${opacity})`,
+            }}
+            accessor={"population"}
+            backgroundColor={"transparent"}
+            paddingLeft={"15"}
+            center={[10, 10]}
+            hasLegend={true}
+            absolute
+          />
+        </View>
       ) : (
         <Text style={styles.emptyText}>No expense data available for this period.</Text>
       )}
@@ -98,26 +106,28 @@ const AnalysisScreen = () => {
           </View>
         ))}
       </View>
+      </LinearGradient>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc', padding: 8 },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#1e293b', padding: 8, textAlign: 'center' },
+  container: { flex: 1, backgroundColor: colors.background, padding: spacing.sm },
+  title: { ...typography.title, textAlign: 'left', padding: spacing.sm },
   filterContainer: { flexDirection: 'row', justifyContent: 'center', paddingVertical: 16 },
-  filterButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#e2e8f0', marginHorizontal: 4 },
-  activeFilter: { backgroundColor: '#059669' },
-  filterText: { color: '#475569', fontWeight: '600' },
+  filterButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#1e293b', marginHorizontal: 4, borderWidth: 1, borderColor: colors.border },
+  activeFilter: { backgroundColor: colors.income },
+  filterText: { color: colors.textSecondary, fontWeight: '600' },
   activeFilterText: { color: 'white' },
-  summaryContainer: { marginTop: 16, paddingHorizontal: 8 },
-  summaryTitle: { fontSize: 18, fontWeight: 'bold', color: '#334155', marginBottom: 8 },
-  summaryItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },
+  card: { backgroundColor: colors.card, padding: spacing.md, borderRadius: radius.lg, marginHorizontal: spacing.md, borderWidth: 1, borderColor: colors.border },
+  summaryContainer: { marginTop: 16, paddingHorizontal: spacing.md },
+  summaryTitle: { fontSize: 18, fontWeight: 'bold', color: colors.textPrimary, marginBottom: 8 },
+  summaryItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
   categoryInfo: { flexDirection: 'row', alignItems: 'center' },
   colorSquare: { width: 12, height: 12, marginRight: 8, borderRadius: 2 },
-  categoryText: { fontSize: 16, color: '#475569' },
-  categoryAmount: { fontSize: 16, fontWeight: '500' },
-  emptyText: { textAlign: 'center', marginTop: 20, color: '#64748b' },
+  categoryText: { fontSize: 16, color: colors.textSecondary },
+  categoryAmount: { fontSize: 16, fontWeight: '500', color: colors.textPrimary },
+  emptyText: { textAlign: 'center', marginTop: 20, color: colors.textSecondary },
 });
 
 export default AnalysisScreen;

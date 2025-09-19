@@ -6,12 +6,12 @@ import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } fro
 import { useAuth } from '../src/auth/AuthContext';
 
 const RegisterScreen = () => {
+  const router = useRouter();
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const { register } = useAuth();
-  const router = useRouter();
 
   const handleRegister = async () => {
     try {
@@ -49,17 +49,18 @@ const RegisterScreen = () => {
           placeholderTextColor="#64748b"
           value={name}
           onChangeText={setName}
-          autoCapitalize="words"
         />
+        
         <TextInput
           style={styles.input}
-          placeholder="Email address"
+          placeholder="Email"
           placeholderTextColor="#64748b"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
+        
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -68,6 +69,7 @@ const RegisterScreen = () => {
           onChangeText={setPassword}
           secureTextEntry
         />
+        
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
@@ -78,7 +80,7 @@ const RegisterScreen = () => {
         />
 
         <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-          <Text style={styles.registerButtonText}>Register</Text>
+          <Text style={styles.registerButtonText}>Create Account</Text>
         </TouchableOpacity>
 
         <View style={styles.loginPromptContainer}>

@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { useTransactions } from '../src/transactions/TransactionsContext';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTransactions } from '../src/transactions/TransactionsContext';
 
 const EditTransactionScreen = () => {
   const { id } = useLocalSearchParams();
@@ -54,7 +55,8 @@ const EditTransactionScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+  <LinearGradient colors={["#ecfdf5", "#d1fae5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradient}>
+  <View style={styles.container}>
       <Text style={styles.title}>Edit Transaction</Text>
 
       <TextInput
@@ -106,14 +108,16 @@ const EditTransactionScreen = () => {
         <Text style={styles.addButtonText}>Update Transaction</Text>
       </TouchableOpacity>
     </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: { flex: 1 },
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f8fafc',
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: 24,
