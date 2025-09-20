@@ -1,7 +1,7 @@
 
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
-import { Text } from "react-native"; // Import Text for loading state
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from "../src/auth/AuthContext";
 import { TransactionsProvider } from "../src/transactions/TransactionsContext";
@@ -30,7 +30,12 @@ const InitialLayout = () => {
 
   // Show a loading indicator until authentication state is resolved
   if (loading) {
-    return <Text>Loading authentication...</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#059669" />
+        <Text style={styles.loadingText}>Checking authentication...</Text>
+      </View>
+    );
   }
 
   return <AuthRedirector />;
@@ -49,3 +54,18 @@ const RootLayout = () => {
 };
 
 export default RootLayout;
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#ffffff',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#475569',
+    fontSize: 16,
+  },
+});
