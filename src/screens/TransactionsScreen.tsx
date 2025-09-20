@@ -10,7 +10,8 @@ const TransactionsScreen = () => {
 
   const handleAddOrUpdate = (transaction: Omit<Transaction, 'id'>) => {
     if (editingTransaction) {
-      updateTransaction({ ...editingTransaction, ...transaction });
+      // TransactionsContext.updateTransaction expects (id, updates)
+      updateTransaction(editingTransaction.id, { ...transaction });
       setEditingTransaction(null);
     } else {
       addTransaction(transaction);

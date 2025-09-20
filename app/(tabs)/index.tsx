@@ -5,10 +5,13 @@ import { useTransactions } from '@/src/transactions/TransactionsContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View, LayoutChangeEvent } from 'react-native';
-import { BarChart, LineChart } from 'react-native-chart-kit';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Dimensions, LayoutChangeEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
+import LineChartBicolor from '../../components/dashboard/LineChartBicolor';
 import SpendingAnalysis from '../../components/dashboard/SpendingAnalysis';
+import SummaryChart from '../../components/dashboard/SummaryChart';
+import TransactionsList from '../../components/ui/TransactionsList';
 
 const { width } = Dimensions.get('window');
 
@@ -161,14 +164,10 @@ const DashboardScreen = () => {
         </View>
       </View>
 
-      <TouchableOpacity accessibilityLabel="Add new transaction" style={styles.addButton} onPress={() => router.push('/transactions')}>
+  <TouchableOpacity accessibilityLabel="Add new transaction" style={styles.addButton} onPress={() => router.push({ pathname: '/transactions' })}>
         <Ionicons name="add-circle" size={22} color="white" />
         <Text style={styles.addButtonText}>Add New Transaction</Text>
       </TouchableOpacity>
-      
-      <SpendingAnalysis />
-
-
      
 
       <View style={styles.filterRow}>
@@ -186,28 +185,8 @@ const DashboardScreen = () => {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Income vs. Expense ({range === 'all' ? 'Last 7 Days' : `Last ${range} Days`})</Text>
-        <BarChart
-          data={chartData}
-          width={width - 32} // from react-native
-          height={220}
-          // hide default Y-axis label prefix
-          formatYLabel={() => ''}
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            decimalPlaces: 0,
-            barPercentage: 0.6,
-            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
-            propsForBackgroundLines: {
-              strokeDasharray: '0',
-              stroke: '#f1f5f9',
-            },
-          }}
-          style={{ marginVertical: 8, borderRadius: 16, backgroundColor: '#ffffff' }}
-        />
+        <Text style={styles.sectionTitle}>Income vs. Expense</Text>
+        <SummaryChart />
       </View>
 
       <View style={styles.section}>
@@ -223,70 +202,51 @@ const DashboardScreen = () => {
               </View>
             </View>
           )}
-          <LineChart
-          data={balanceSparkline}
-          // use measured container width so chart fills the card without extra margins
-          width={chartWidthPx || (width - 32)}
-          height={180}
-          withDots={true}
-          withInnerLines={false}
-          withOuterLines={false}
-          // hide left axis label prefix and numbers; keep formatYLabel only for this chart
-          fromZero={false}
-          chartConfig={{
-            backgroundColor: '#ffffff',
-            backgroundGradientFrom: '#ffffff',
-            backgroundGradientTo: '#ffffff',
-            color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(100, 116, 139, ${opacity})`,
-            propsForBackgroundLines: {
-              stroke: '#f1f5f9',
-            },
-            decimalPlaces: 0,
-          }}
-          bezier
-          style={{ marginVertical: 8, borderRadius: 16, backgroundColor: '#ffffff', paddingLeft: 0 }}
-          formatYLabel={() => ''}
-          onDataPointClick={(data) => {
-            const index = data.index;
-            const value = data.value as number;
-            setSelectedIndex(index);
-            setSelectedLabel(balanceSparkline.labels[index]);
-            setSelectedValue(value);
-          }}
-        />
+          <LineChartBicolor
+            data={(balanceSparkline.datasets && balanceSparkline.datasets[0] && balanceSparkline.datasets[0].data) || []}
+            width={chartWidthPx || (width - 32)}
+            height={180}
+            strokeWidth={2}
+          />
         </View>
       </View>
+
+  <SpendingAnalysis />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Transactions</Text>
         {recentTransactions.length > 0 ? (
-          recentTransactions.map(t => (
-            <View key={t.id} style={styles.transactionItem}>
-              <View>
-                <Text style={styles.transactionDesc}>{t.description}</Text>
-                <Text style={styles.transactionDate}>{new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
-              </View>
-              <Text style={[styles.transactionAmount, t.type === 'income' ? styles.income : styles.expense]}>
-                {t.type === 'income' ? '+' : '-'} LKR {t.amount.toFixed(2)}
-              </Text>
-            </View>
-          ))
+          <TransactionsList
+            transactions={recentTransactions as any}
+            categories={[] as any}
+            deleteTransaction={(id: string | number) => {
+              // use TransactionsContext deleteTransaction (available via hook)
+              // fallback: find function from the context earlier
+              return (async () => {
+                const { deleteTransaction } = useTransactions() as any;
+                return deleteTransaction(String(id));
+              })();
+            }}
+            onEdit={(id: string | number) => {
+              // navigate to edit screen
+              router.push({ pathname: '/edit-transaction', params: { id: String(id) } });
+            }}
+          />
         ) : (
           <Text style={{ color: colors.textSecondary }}>No recent transactions. Add your first one!</Text>
         )}
       </View>
 
       <View style={styles.actionsRow}>
-        <TouchableOpacity accessibilityLabel="View reports" style={styles.quickAction} onPress={() => router.push('/analysis')}>
-          <Ionicons name="stats-chart" size={22} color="#047857" />
-          <Text style={styles.quickActionText}>Reports</Text>
+  <TouchableOpacity accessibilityLabel="View goals" style={styles.quickAction} onPress={() => router.push({ pathname: '/financilagoal' })}>
+          <Ionicons name="trophy" size={22} color="#047857" />
+          <Text style={styles.quickActionText}>Goals</Text>
         </TouchableOpacity>
-        <TouchableOpacity accessibilityLabel="Budget settings" style={styles.quickAction} onPress={() => router.push('/transactions')}>
+  <TouchableOpacity accessibilityLabel="Budget settings" style={styles.quickAction} onPress={() => router.push({ pathname: '/transactions' })}>
           <Ionicons name="wallet" size={22} color="#047857" />
           <Text style={styles.quickActionText}>Budget</Text>
         </TouchableOpacity>
-        <TouchableOpacity accessibilityLabel="Manage categories" style={styles.quickAction} onPress={() => router.push('/transactions')}>
+  <TouchableOpacity accessibilityLabel="Manage categories" style={styles.quickAction} onPress={() => router.push({ pathname: '/transactions' })}>
           <Ionicons name="pricetags" size={22} color="#047857" />
           <Text style={styles.quickActionText}>Categories</Text>
         </TouchableOpacity>
@@ -302,15 +262,15 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md },
   greeting: { ...typography.title },
   subGreeting: { ...typography.subtitle },
-  summaryContainer: { flexDirection: 'row', justifyContent: 'space-around', padding: spacing.md },
+  summaryContainer: { flexDirection: 'column', padding: spacing.md },
   summaryBox: { alignItems: 'center' },
-  balanceCard: { width: '100%', padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border },
-  rowBelow: { flexDirection: 'row', justifyContent: 'space-between' },
-  halfCard: { flex: 1, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
+  balanceCard: { width: '100%', padding: spacing.lg, borderRadius: radius.lg, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border, minHeight: 120, justifyContent: 'center', alignItems: 'center' },
+  rowBelow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
+  halfCard: { flex: 1, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, justifyContent: 'center', alignItems: 'center' },
   summaryLabel: { ...typography.label },
   summaryValue: { fontSize: 20, fontWeight: 'bold', color: colors.textPrimary },
-  summaryLabelCentered: { ...typography.label, textAlign: 'center' },
-  summaryValueCentered: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', textShadowColor: 'rgba(4,120,87,0.12)', textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 6 },
+  summaryLabelCentered: { ...typography.label, textAlign: 'center', fontSize: 18 },
+  summaryValueCentered: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', textShadowColor: 'rgba(4,120,87,0.12)', textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 6 },
   addButton: { flexDirection: 'row', backgroundColor: colors.income, padding: 14, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginHorizontal: spacing.md, marginVertical: spacing.sm },
   addButtonText: { color: 'white', fontSize: 16, fontWeight: '600', marginLeft: 8 },
   section: { backgroundColor: colors.card, padding: spacing.md, marginVertical: spacing.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },

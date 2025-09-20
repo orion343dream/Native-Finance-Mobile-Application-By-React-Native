@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Card from './Card';
 
 // Local minimal Category shape used by the list
-type Category = { id?: string | number; name?: string; emoji?: string };
+type Category = { id?: string | number; name?: string };
 
 // fallback colors (also available in SpendingAnalysis) kept locally for the list
 const categoryColors: Record<string, string> = {
@@ -37,8 +37,7 @@ export default function TransactionListItem({
     Shopping: '🛍️',
     Income: '💰',
   };
-  // prefer emoji from categoryInfo (from user custom categories), fallback to map
-  const emoji = categoryInfo?.emoji || emojiMap[categoryInfo?.name ?? 'Default'] || '📦';
+  const emoji = emojiMap[categoryInfo?.name ?? 'Default'] || '📦';
   return (
     <Card style={{ padding: 12 }}>
       <View style={styles.row}>
@@ -46,7 +45,7 @@ export default function TransactionListItem({
           <Amount amount={Number(transaction.amount)} color={color} iconName={iconName} />
           <CategoryItem categoryColor={categoryColor} categoryInfo={categoryInfo} emoji={emoji} />
         </View>
-        <TransactionInfo date={transaction.date} description={transaction.description} id={transaction.id} />
+  <TransactionInfo date={transaction.date} description={transaction.description} id={transaction.id} />
       </View>
     </Card>
   );

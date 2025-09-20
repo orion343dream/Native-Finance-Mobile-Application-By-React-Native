@@ -1,10 +1,10 @@
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import * as React from 'react';
-import { Text, TouchableOpacity, View, Platform, StyleSheet, Dimensions } from 'react-native';
-import { BarChart as GiftedBarChart, barDataItem } from 'react-native-gifted-charts';
+import { spacing } from '@/src/theme';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
-import { colors, spacing, typography } from '@/src/theme';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { SymbolView } from 'expo-symbols';
+import * as React from 'react';
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BarChart as GiftedBarChart, barDataItem } from 'react-native-gifted-charts';
 
 enum Period {
   week = 'week',
@@ -37,8 +37,8 @@ export default function SummaryChart() {
   const [barData, setBarData] = React.useState<barDataItem[]>([]);
   const [currentDate, setCurrentDate] = React.useState<Date>(new Date());
   const [currentEndDate, setCurrentEndDate] = React.useState<Date>(new Date());
-  const [visibleStartDate, setVisibleStartDate] = React.useState<Date | null>(null);
-  const [visibleEndDate, setVisibleEndDate] = React.useState<Date | null>(null);
+  const [visibleStartDate, setVisibleStartDate] = React.useState<Date>(new Date());
+  const [visibleEndDate, setVisibleEndDate] = React.useState<Date>(new Date());
   const [chartKey, setChartKey] = React.useState(0);
   const [transactionType, setTransactionType] = React.useState<'Income' | 'Expense'>('Income');
 
@@ -58,20 +58,16 @@ export default function SummaryChart() {
           ).reduce((s, t) => s + t.amount, 0);
           days.push({ value: total, label: formatDayLabel(day) });
         }
-        setBarData(days);
-        // visible start/end correspond to the actual bars
-        const visStart = new Date(start);
-        visStart.setDate(start.getDate() - 3);
-        const visEnd = new Date(start);
-        visEnd.setDate(start.getDate() + 6);
-        setVisibleStartDate(visStart);
-        setVisibleEndDate(visEnd);
-        setCurrentEndDate(new Date(start.getTime() + 6 * 24 * 3600 * 1000));
+  setBarData(days);
+  // visible range includes extraBefore days before start and the week end
+  const visStart = new Date(start.getTime() - extraBefore * 24 * 3600 * 1000);
+  const visEnd = new Date(start.getTime() + 6 * 24 * 3600 * 1000);
+  setVisibleStartDate(visStart);
+  setVisibleEndDate(visEnd);
+  setCurrentEndDate(visEnd);
         setChartKey(k => k + 1);
       } else {
         setBarData([]);
-        setVisibleStartDate(null);
-        setVisibleEndDate(null);
       }
     };
     fetch();
@@ -95,39 +91,44 @@ export default function SummaryChart() {
 
   const total = barData.reduce((s, it) => s + (it.value || 0), 0);
 
+  // compute chart width to allow expansion to the right based on number of bars
+  const perBarSpace = 18 + 12; // barWidth + spacing
+  const computedWidth = Math.max(width - 32, barData.length * perBarSpace + 80);
+
   return (
     <View style={styles.container}>
       <View style={{ marginBottom: 8 }}>
         <Text style={{ fontWeight: '700', fontSize: 18 }}>
-          {currentEndDate.toLocaleDateString('en-US', { month: 'short' })} {currentEndDate.getDate()} - {currentDate.toLocaleDateString('en-US', { month: 'short' })} {currentDate.getDate()}
+          {visibleStartDate.toLocaleDateString('en-US', { month: 'short' })} {visibleStartDate.getDate()} - {visibleEndDate.toLocaleDateString('en-US', { month: 'short' })} {visibleEndDate.getDate()}
         </Text>
         <Text style={{ color: 'gray' }}>Total {transactionType === 'Expense' ? 'Spending' : 'Income'}</Text>
       </View>
 
       <Text style={{ fontWeight: '700', fontSize: 28, marginBottom: 12 }}>{total.toFixed(2)}</Text>
 
-      <GiftedBarChart
-        key={chartKey}
-        data={barData}
-        barWidth={14}
-        height={200}
-        // compute width based on number of bars to reduce trailing empty space
-        width={Math.min(Math.max(barData.length * 34, width - 80), 420)}
-        minHeight={3}
-        barBorderRadius={3}
-        showGradient
-        spacing={10}
-        noOfSections={4}
-        yAxisThickness={0}
-        xAxisThickness={0}
-        xAxisLabelsVerticalShift={2}
-        xAxisLabelTextStyle={{ color: 'gray' }}
-        yAxisTextStyle={{ color: 'gray' }}
-        isAnimated
-        animationDuration={300}
-        frontColor={transactionType === 'Expense' ? '#dc2626' : '#16a34a'}
-        gradientColor={transactionType === 'Expense' ? '#fb923c' : '#4ade80'}
-      />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 12 }}>
+        <GiftedBarChart
+          key={chartKey}
+          data={barData}
+          barWidth={18}
+          height={200}
+          width={computedWidth}
+          minHeight={3}
+          barBorderRadius={3}
+          showGradient
+          spacing={12}
+          noOfSections={4}
+          yAxisThickness={0}
+          xAxisThickness={0}
+          xAxisLabelsVerticalShift={2}
+          xAxisLabelTextStyle={{ color: 'gray' }}
+          yAxisTextStyle={{ color: 'gray' }}
+          isAnimated
+          animationDuration={300}
+          frontColor={transactionType === 'Expense' ? '#dc2626' : '#16a34a'}
+          gradientColor={transactionType === 'Expense' ? '#fb923c' : '#4ade80'}
+        />
+      </ScrollView>
 
       <View style={styles.controlsRow}>
         <TouchableOpacity onPress={handlePrevious} style={styles.controlBtn}>

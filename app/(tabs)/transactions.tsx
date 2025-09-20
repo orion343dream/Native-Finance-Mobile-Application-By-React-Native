@@ -36,7 +36,7 @@ const TransactionItem = ({ transaction, onDelete, onEdit }: TransactionItemProps
 );
 
 export default function TransactionsScreen() {
-  const { transactions, loading, deleteTransaction, addTransaction } = useTransactions();
+  const { transactions, loading, deleteTransaction, addTransaction, updateTransaction } = useTransactions();
   const { user, updateUserCustomCategories } = useAuth();
   const [filter, setFilter] = useState('all'); // 'all', 'income', 'expense'
   const router = useRouter();
@@ -60,15 +60,19 @@ export default function TransactionsScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const userCustomCategories = useMemo(() => {
-    return user?.customCategories || { expense: [], income: [] };
+  // Normalize stored custom categories to an object with arrays. Stored values may be strings or objects { name, emoji }
+  const raw = user?.customCategories || { expense: [], income: [] };
+  const normalize = (arr: any[]) => arr.map(item => (typeof item === 'string' ? item : item?.name ?? ''));
+  return { expense: normalize(raw.expense || []), income: normalize(raw.income || []) };
   }, [user]);
 
   const combinedCategories = useMemo(() => {
     if (!type) return [] as string[];
-    const base = type === 'income' ? defaultCategories.income : defaultCategories.expense;
-    const customs = (userCustomCategories[type] || []) as string[];
-    const merged = Array.from(new Set([...base, ...customs]));
-    return [...merged, 'Custom'];
+  const base = type === 'income' ? defaultCategories.income : defaultCategories.expense;
+  const customs = (userCustomCategories[type] || []) as string[];
+  // ensure unique and string labels only
+  const merged = Array.from(new Set([...base, ...customs.filter(Boolean)]));
+  return [...merged, '+ Add Category'];
   }, [type, userCustomCategories]);
 
   useEffect(() => {
@@ -99,9 +103,10 @@ export default function TransactionsScreen() {
     if (!type) return;
     const trimmed = customCategory.trim();
     if (!trimmed) return;
-    const existing = new Set([...(userCustomCategories[type] || [])]);
+    const existingNames = (userCustomCategories[type] || []) as string[];
+    const existing = new Set(existingNames);
     if (!existing.has(trimmed)) {
-      const updated = [...existing, trimmed];
+      const updated = [...existingNames, trimmed];
       if (user && updateUserCustomCategories) {
         await updateUserCustomCategories(user.uid, type, updated as string[]);
       }
@@ -114,13 +119,22 @@ export default function TransactionsScreen() {
     if (!type || !description.trim() || !amount || !date) return;
     const parsedAmount = parseFloat(amount);
     if (Number.isNaN(parsedAmount)) return;
-    const finalCategory = category === 'Custom' ? customCategory.trim() : category;
+  const finalCategory = category === '+ Add Category' ? customCategory.trim() : category;
     if (!finalCategory) return;
-
     if (isEditing && editingId) {
-      // Editing flow could be added if update screen is desired here
-      // For now, navigate to edit screen for consistency
-      router.push(`/edit-transaction?id=${editingId}`);
+      // perform in-place update using TransactionsContext
+      try {
+        await updateTransaction(editingId, {
+          description: description.trim(),
+          amount: parsedAmount,
+          category: finalCategory,
+          type,
+          date,
+        });
+      } catch (err) {
+        console.error('Failed to update transaction', err);
+      }
+      resetForm();
       return;
     }
 
@@ -139,9 +153,20 @@ export default function TransactionsScreen() {
     return transactions.filter(t => t.type === filter);
   }, [transactions, filter]);
   
-  const onEdit = (transaction: { id: string }) => {
-    // Navigate to an edit screen, passing the transaction ID
-    router.push(`/edit-transaction?id=${transaction.id}`);
+  const onEdit = (transaction: TransactionItemProps['transaction']) => {
+    // Prefill inline form for editing
+    setIsEditing(true);
+    setEditingId(transaction.id);
+    setDescription(transaction.description);
+    setAmount(String(transaction.amount));
+    setCategory(transaction.category);
+    setType(transaction.type);
+    setDate(transaction.date);
+    try {
+      setDateObj(new Date(transaction.date));
+    } catch (e) {
+      setDateObj(new Date());
+    }
   };
 
   const onDelete = (id: string) => {
@@ -185,9 +210,9 @@ export default function TransactionsScreen() {
           </View>
         )}
 
-        {category === 'Custom' && (
+        {category === '+ Add Category' && (
           <View style={styles.formRow}>
-            <Text style={styles.label}>Add Custom Category</Text>
+            <Text style={styles.label}>+ Add Category</Text>
             <View style={styles.customRow}>
               <TextInput
                 style={styles.customInputBox}
@@ -273,7 +298,7 @@ export default function TransactionsScreen() {
             <Text style={styles.modalTitle}>Add New Transaction</Text>
             <Text style={styles.modalText}>Would you like to add a new transaction now?</Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => { setShowAddPrompt(false); router.push('/add-transaction'); }} style={[styles.modalButton, styles.modalPrimary]}>
+              <TouchableOpacity onPress={() => { setShowAddPrompt(false); router.push({ pathname: '/add-transaction' }); }} style={[styles.modalButton, styles.modalPrimary]}>
                 <Text style={styles.modalPrimaryText}>Open Form</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setShowAddPrompt(false)} style={[styles.modalButton, styles.modalSecondary]}>
