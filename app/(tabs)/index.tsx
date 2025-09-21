@@ -137,60 +137,147 @@ const DashboardScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <LinearGradient colors={gradients.screen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradientLayer}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Hello, {user?.name || 'User'}!</Text>
-          <Text style={styles.subGreeting}>Welcome to your financial hub.</Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Modern Header Section */}
+      <LinearGradient colors={['#0f766e', '#059669']} style={styles.modernHeader}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerTop}>
+            <View style={styles.userInfo}>
+              <Text style={styles.greeting}>Hello, {user?.name || 'User'}! 👋</Text>
+              <Text style={styles.subGreeting}>Welcome to your financial dashboard</Text>
+            </View>
+            <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/financilagoal')}>
+              <Ionicons name="person-circle" size={40} color="white" />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Quick Stats in Header */}
+          <View style={styles.quickStatsRow}>
+            <View style={styles.quickStatCard}>
+              <Ionicons name="trending-up" size={20} color="#10b981" />
+              <Text style={styles.quickStatValue}>+{incomeTransactions.length}</Text>
+              <Text style={styles.quickStatLabel}>Income</Text>
+            </View>
+            <View style={styles.quickStatCard}>
+              <Ionicons name="trending-down" size={20} color="#ef4444" />
+              <Text style={styles.quickStatValue}>-{expenseTransactions.length}</Text>
+              <Text style={styles.quickStatLabel}>Expenses</Text>
+            </View>
+            <View style={styles.quickStatCard}>
+              <Ionicons name="pie-chart" size={20} color="white" />
+              <Text style={styles.quickStatValue}>{totalTransactions}</Text>
+              <Text style={styles.quickStatLabel}>Total</Text>
+            </View>
+          </View>
         </View>
-      </View>
+      </LinearGradient>
 
-      <View style={styles.summaryContainer}>
-        <LinearGradient colors={[ '#ecfdf5', '#bbf7d0' ]} style={styles.balanceCard} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-          <Text style={styles.summaryLabelCentered}>Balance</Text>
-          <Text style={styles.summaryValueCentered}>LKR {totals.balance.toFixed(2)}</Text>
+      {/* Main Content */}
+      <View style={styles.contentContainer}>
+        {/* Modern Balance Card */}
+        <LinearGradient colors={['#ecfdf5', '#d1fae5']} style={styles.modernBalanceCard}>
+          <View style={styles.balanceCardHeader}>
+            <Ionicons name="wallet" size={24} color={colors.income} />
+            <Text style={styles.balanceCardTitle}>Current Balance</Text>
+          </View>
+          <Text style={[styles.balanceAmount, { color: totals.balance >= 0 ? colors.income : colors.expense }]}>
+            LKR {Math.abs(totals.balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </Text>
+          <Text style={styles.balanceSubtext}>
+            {totals.balance >= 0 ? '↗ Positive balance' : '↘ Negative balance'}
+          </Text>
         </LinearGradient>
 
-        <View style={styles.rowBelow}>
-          <LinearGradient colors={[ '#ffffff', '#ecfdf5' ]} style={[styles.halfCard, { marginRight: 8 }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-            <Text style={styles.summaryLabelCentered}>Income</Text>
-            <Text style={[styles.summaryValueCentered, { color: colors.income }]}>LKR {totals.income.toFixed(2)}</Text>
-          </LinearGradient>
-          <LinearGradient colors={[ '#ffffff', '#fee2e2' ]} style={[styles.halfCard, { marginLeft: 8 }]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-            <Text style={styles.summaryLabelCentered}>Expense</Text>
-            <Text style={[styles.summaryValueCentered, { color: colors.expense }]}>LKR {totals.expense.toFixed(2)}</Text>
-          </LinearGradient>
+        {/* Income/Expense Cards Row */}
+        <View style={styles.modernCardsRow}>
+          <View style={styles.modernIncomeCard}>
+            <View style={styles.cardIconContainer}>
+              <Ionicons name="arrow-down-circle" size={24} color={colors.income} />
+            </View>
+            <Text style={styles.cardLabel}>Income</Text>
+            <Text style={[styles.cardValue, { color: colors.income }]}>
+              LKR {totals.income.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </View>
+          
+          <View style={styles.modernExpenseCard}>
+            <View style={styles.cardIconContainer}>
+              <Ionicons name="arrow-up-circle" size={24} color={colors.expense} />
+            </View>
+            <Text style={styles.cardLabel}>Expenses</Text>
+            <Text style={[styles.cardValue, { color: colors.expense }]}>
+              LKR {totals.expense.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </View>
         </View>
-      </View>
 
-  <TouchableOpacity accessibilityLabel="Add new transaction" style={styles.addButton} onPress={() => router.push({ pathname: '/transactions' })}>
-        <Ionicons name="add-circle" size={22} color="white" />
-        <Text style={styles.addButtonText}>Add New Transaction</Text>
-      </TouchableOpacity>
+        {/* Quick Actions */}
+        <View style={styles.quickActionsSection}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/transactions')}>
+              <LinearGradient colors={[colors.income, '#10b981']} style={styles.quickActionGradient}>
+                <Ionicons name="add-circle" size={28} color="white" />
+                <Text style={styles.quickActionText}>Add Transaction</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/financilagoal')}>
+              <LinearGradient colors={['#6366f1', '#8b5cf6']} style={styles.quickActionGradient}>
+                <Ionicons name="trophy" size={28} color="white" />
+                <Text style={styles.quickActionText}>Goals</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/analysis')}>
+              <LinearGradient colors={['#f59e0b', '#f97316']} style={styles.quickActionGradient}>
+                <Ionicons name="analytics" size={28} color="white" />
+                <Text style={styles.quickActionText}>Analytics</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.quickActionCard} onPress={() => router.push('/transactions')}>
+              <LinearGradient colors={['#06b6d4', '#0891b2']} style={styles.quickActionGradient}>
+                <Ionicons name="list" size={28} color="white" />
+                <Text style={styles.quickActionText}>All Transactions</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
      
 
-      <View style={styles.filterRow}>
-        <Text style={styles.sectionTitle}>Overview</Text>
-        <View style={{ flexDirection: 'row' }}>
-          {[7, 30].map(v => (
-            <TouchableOpacity key={v} accessibilityLabel={`Show last ${v} days`} onPress={() => setRange(v as 7 | 30)} style={[styles.filterChip, range === v && styles.filterChipActive]}>
-              <Text style={[styles.filterChipText, range === v && styles.filterChipTextActive]}>{v}d</Text>
-            </TouchableOpacity>
-          ))}
-          <TouchableOpacity accessibilityLabel="Show all time" onPress={() => setRange('all')} style={[styles.filterChip, range === 'all' && styles.filterChipActive]}>
-            <Text style={[styles.filterChipText, range === 'all' && styles.filterChipTextActive]}>All</Text>
-          </TouchableOpacity>
+        {/* Overview Section */}
+        <View style={styles.overviewSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Financial Overview</Text>
+            <View style={styles.modernFilterRow}>
+              {[7, 30].map(v => (
+                <TouchableOpacity key={v} onPress={() => setRange(v as 7 | 30)} style={[styles.modernFilterChip, range === v && styles.modernFilterChipActive]}>
+                  <Text style={[styles.modernFilterText, range === v && styles.modernFilterTextActive]}>{v}d</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity onPress={() => setRange('all')} style={[styles.modernFilterChip, range === 'all' && styles.modernFilterChipActive]}>
+                <Text style={[styles.modernFilterText, range === 'all' && styles.modernFilterTextActive]}>All</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
 
-      <View style={[styles.section, styles.expandedSection]}>
-        <Text style={styles.sectionTitle}>Income vs. Expense</Text>
-        <SummaryChart />
-      </View>
+        {/* Charts Section */}
+        <View style={styles.chartsContainer}>
+          <View style={styles.modernChartCard}>
+            <View style={styles.chartHeader}>
+              <Ionicons name="bar-chart" size={20} color={colors.income} />
+              <Text style={styles.chartTitle}>Income vs. Expense</Text>
+            </View>
+            <SummaryChart />
+          </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Balance Trend</Text>
+          <View style={styles.modernChartCard}>
+            <View style={styles.chartHeader}>
+              <Ionicons name="trending-up" size={20} color={colors.income} />
+              <Text style={styles.chartTitle}>Balance Trend</Text>
+            </View>
         <View onLayout={onChartLayout} ref={chartContainerRef}>
           {selectedLabel !== '' && selectedValue !== null && (
             <View pointerEvents="none" style={{ position: 'relative', height: 0 }}>
@@ -208,88 +295,408 @@ const DashboardScreen = () => {
             height={180}
             strokeWidth={2}
           />
+            </View>
+          </View>
         </View>
-      </View>
 
-  <SpendingAnalysis />
+        {/* Spending Analysis */}
+        <View style={styles.modernAnalysisCard}>
+          <View style={styles.analysisHeader}>
+            <Ionicons name="pie-chart" size={20} color={colors.income} />
+            <Text style={styles.chartTitle}>Spending Analysis</Text>
+          </View>
+          <SpendingAnalysis />
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        {recentTransactions.length > 0 ? (
-          <TransactionsList
-            transactions={recentTransactions as any}
-            categories={[] as any}
-            deleteTransaction={(id: string | number) => {
-              // use TransactionsContext deleteTransaction (available via hook)
-              // fallback: find function from the context earlier
-              return (async () => {
-                const { deleteTransaction } = useTransactions() as any;
-                return deleteTransaction(String(id));
-              })();
-            }}
-            onEdit={(id: string | number) => {
-              // navigate to edit screen
-              router.push({ pathname: '/edit-transaction', params: { id: String(id) } });
-            }}
-          />
-        ) : (
-          <Text style={{ color: colors.textSecondary }}>No recent transactions. Add your first one!</Text>
-        )}
-      </View>
+        {/* Recent Transactions */}
+        <View style={styles.modernTransactionsCard}>
+          <View style={styles.transactionsHeader}>
+            <View style={styles.transactionsHeaderLeft}>
+              <Ionicons name="receipt" size={20} color={colors.income} />
+              <Text style={styles.chartTitle}>Recent Transactions</Text>
+            </View>
+            <TouchableOpacity onPress={() => router.push('/transactions')} style={styles.viewAllButton}>
+              <Text style={styles.viewAllText}>View All</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.income} />
+            </TouchableOpacity>
+          </View>
+          {recentTransactions.length > 0 ? (
+            <TransactionsList
+              transactions={recentTransactions as any}
+              categories={[] as any}
+              deleteTransaction={(id: string | number) => {
+                return (async () => {
+                  const { deleteTransaction } = useTransactions() as any;
+                  return deleteTransaction(String(id));
+                })();
+              }}
+              onEdit={(id: string | number) => {
+                router.push({ pathname: '/edit-transaction', params: { id: String(id) } });
+              }}
+            />
+          ) : (
+            <View style={styles.emptyTransactions}>
+              <Ionicons name="receipt-outline" size={48} color={colors.textSecondary} />
+              <Text style={styles.emptyTransactionsText}>No recent transactions</Text>
+              <Text style={styles.emptyTransactionsSubtext}>Add your first transaction to get started!</Text>
+            </View>
+          )}
+        </View>
 
-      <View style={styles.actionsRow}>
-  <TouchableOpacity accessibilityLabel="View goals" style={styles.quickAction} onPress={() => router.push({ pathname: '/financilagoal' })}>
-          <Ionicons name="trophy" size={22} color="#047857" />
-          <Text style={styles.quickActionText}>Goals</Text>
-        </TouchableOpacity>
-  <TouchableOpacity accessibilityLabel="Budget settings" style={styles.quickAction} onPress={() => router.push({ pathname: '/transactions' })}>
-          <Ionicons name="wallet" size={22} color="#047857" />
-          <Text style={styles.quickActionText}>Budget</Text>
-        </TouchableOpacity>
-  <TouchableOpacity accessibilityLabel="Manage categories" style={styles.quickAction} onPress={() => router.push({ pathname: '/transactions' })}>
-          <Ionicons name="pricetags" size={22} color="#047857" />
-          <Text style={styles.quickActionText}>Categories</Text>
-        </TouchableOpacity>
       </View>
-      </LinearGradient>
+      
+      {/* Bottom Spacing */}
+      <View style={styles.bottomSpacing} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  gradientLayer: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md },
-  greeting: { ...typography.title },
-  subGreeting: { ...typography.subtitle },
-  summaryContainer: { flexDirection: 'column', padding: spacing.md },
-  summaryBox: { alignItems: 'center' },
-  balanceCard: { width: '100%', padding: spacing.lg, borderRadius: radius.lg, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border, minHeight: 120, justifyContent: 'center', alignItems: 'center' },
-  rowBelow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.sm },
-  halfCard: { flex: 1, padding: spacing.md, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, justifyContent: 'center', alignItems: 'center' },
-  summaryLabel: { ...typography.label },
-  summaryValue: { fontSize: 20, fontWeight: 'bold', color: colors.textPrimary },
-  summaryLabelCentered: { ...typography.label, textAlign: 'center', fontSize: 18 },
-  summaryValueCentered: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', textShadowColor: 'rgba(4,120,87,0.12)', textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 6 },
-  addButton: { flexDirection: 'row', backgroundColor: colors.income, padding: 14, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginHorizontal: spacing.md, marginVertical: spacing.sm },
-  addButtonText: { color: 'white', fontSize: 16, fontWeight: '600', marginLeft: 8 },
-  section: { backgroundColor: colors.card, padding: spacing.md, marginVertical: spacing.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
-  expandedSection: { marginHorizontal: spacing.sm, paddingHorizontal: spacing.lg },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8, color: colors.textPrimary },
+  container: { flex: 1, backgroundColor: '#f8fafc' },
+  
+  // Modern Header Styles
+  modernHeader: {
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.md,
+    borderBottomLeftRadius: radius.lg,
+    borderBottomRightRadius: radius.lg,
+  },
+  headerContent: {
+    paddingTop: spacing.sm,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.lg,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: 'white',
+    marginBottom: 4,
+  },
+  subGreeting: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  profileButton: {
+    padding: spacing.xs,
+  },
+  
+  // Quick Stats in Header
+  quickStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  quickStatCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 4,
+    backdropFilter: 'blur(10px)',
+  },
+  quickStatValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: 'white',
+    marginTop: 4,
+  },
+  quickStatLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  
+  // Content Container
+  contentContainer: {
+    padding: spacing.md,
+  },
+  // Modern Balance Card
+  modernBalanceCard: {
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: '#e5f3f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  balanceCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  balanceCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginLeft: spacing.sm,
+  },
+  balanceAmount: {
+    fontSize: 36,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginVertical: spacing.sm,
+  },
+  balanceSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  
+  // Modern Cards Row
+  modernCardsRow: {
+    flexDirection: 'row',
+    marginBottom: spacing.lg,
+  },
+  modernIncomeCard: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    marginRight: spacing.xs,
+    borderWidth: 1,
+    borderColor: '#e5f3f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  modernExpenseCard: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    marginLeft: spacing.xs,
+    borderWidth: 1,
+    borderColor: '#fee2e2',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  cardIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f0f9ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  cardLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  cardValue: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  // Quick Actions Section
+  quickActionsSection: {
+    marginBottom: spacing.lg,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  quickActionCard: {
+    width: '48%',
+    marginBottom: spacing.sm,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    marginRight: '2%',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+  quickActionGradient: {
+    padding: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 80,
+  },
+  quickActionText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  // Section Headers
+  overviewSection: {
+    marginBottom: spacing.md,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  
+  // Modern Filter Row
+  modernFilterRow: {
+    flexDirection: 'row',
+  },
+  modernFilterChip: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginLeft: spacing.xs,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  modernFilterChipActive: {
+    backgroundColor: colors.income,
+    borderColor: colors.income,
+  },
+  modernFilterText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  modernFilterTextActive: {
+    color: 'white',
+  },
+  // Legacy styles (keeping for compatibility)
   transactionItem: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
   transactionDesc: { fontSize: 16, color: colors.textPrimary },
   transactionDate: { fontSize: 12, color: colors.textSecondary },
   transactionAmount: { fontSize: 16, fontWeight: 'bold' },
   income: { color: colors.income },
   expense: { color: colors.expense },
-  filterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.md, marginTop: spacing.sm },
-  filterChip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#e2e8f0', marginLeft: 6 },
-  filterChipActive: { backgroundColor: colors.income },
-  filterChipText: { color: '#475569', fontWeight: '600' },
-  filterChipTextActive: { color: 'white' },
-  actionsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: spacing.md, marginVertical: spacing.sm },
-  quickAction: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ffffff', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, borderColor: colors.border, borderWidth: 1 },
-  quickActionText: { marginLeft: 6, color: colors.textPrimary, fontWeight: '600' },
+  // Charts Container
+  chartsContainer: {
+    marginBottom: spacing.lg,
+  },
+  modernChartCard: {
+    backgroundColor: 'white',
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  chartTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginLeft: spacing.sm,
+  },
+  
+  // Analysis Card
+  modernAnalysisCard: {
+    backgroundColor: 'white',
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  analysisHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  // Transactions Card
+  modernTransactionsCard: {
+    backgroundColor: 'white',
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  transactionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  transactionsHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.income,
+    marginRight: 4,
+  },
+  emptyTransactions: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+  },
+  emptyTransactionsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginTop: spacing.sm,
+  },
+  emptyTransactionsSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  
+  // Bottom spacing
+  bottomSpacing: {
+    height: spacing.xl,
+  },
 });
 
 export default DashboardScreen;
