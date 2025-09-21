@@ -40,5 +40,5 @@ externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npx", "expo", "start", "--web", "--port", "5000", "--host", "lan", "--no-dev"]
-build = ["npx", "expo", "export", "--platform", "web"]
+run = ["npx", "expo", "start", "--web", "--port", "5000", "--no-dev"]
+build = ["npx", "expo", "export", "-p", "web", "--output-dir", "dist"]
