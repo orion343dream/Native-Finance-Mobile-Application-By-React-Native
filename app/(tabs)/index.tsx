@@ -37,10 +37,12 @@ const DashboardScreen = () => {
   }, [filteredTransactions]);
 
   const totals = useMemo(() => {
-    const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-    const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const incomeTransactions = transactions.filter(t => t.type === 'income');
+    const expenseTransactions = transactions.filter(t => t.type === 'expense');
+    const income = incomeTransactions.reduce((s, t) => s + t.amount, 0);
+    const expense = expenseTransactions.reduce((s, t) => s + t.amount, 0);
     const balance = income - expense;
-    return { income, expense, balance };
+    return { income, expense, balance, incomeTransactions, expenseTransactions };
   }, [transactions]);
 
   // Helper: generate list of dates between start and end (inclusive)
@@ -155,17 +157,17 @@ const DashboardScreen = () => {
           <View style={styles.quickStatsRow}>
             <View style={styles.quickStatCard}>
               <Ionicons name="trending-up" size={20} color="#10b981" />
-              <Text style={styles.quickStatValue}>+{incomeTransactions.length}</Text>
+              <Text style={styles.quickStatValue}>+{totals.incomeTransactions.length}</Text>
               <Text style={styles.quickStatLabel}>Income</Text>
             </View>
             <View style={styles.quickStatCard}>
               <Ionicons name="trending-down" size={20} color="#ef4444" />
-              <Text style={styles.quickStatValue}>-{expenseTransactions.length}</Text>
+              <Text style={styles.quickStatValue}>-{totals.expenseTransactions.length}</Text>
               <Text style={styles.quickStatLabel}>Expenses</Text>
             </View>
             <View style={styles.quickStatCard}>
               <Ionicons name="pie-chart" size={20} color="white" />
-              <Text style={styles.quickStatValue}>{totalTransactions}</Text>
+              <Text style={styles.quickStatValue}>{transactions.length}</Text>
               <Text style={styles.quickStatLabel}>Total</Text>
             </View>
           </View>

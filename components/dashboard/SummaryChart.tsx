@@ -1,7 +1,7 @@
 import { spacing } from '@/src/theme';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import { SymbolView } from 'expo-symbols';
+import { Ionicons } from '@expo/vector-icons';
 import * as React from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BarChart as GiftedBarChart, barDataItem } from 'react-native-gifted-charts';
@@ -132,7 +132,7 @@ export default function SummaryChart() {
 
       <View style={styles.controlsRow}>
         <TouchableOpacity onPress={handlePrevious} style={styles.controlBtn}>
-          <SymbolView name="chevron.left.circle.fill" size={36} type="hierarchical" tintColor={'gray'} />
+          <Ionicons name="chevron-back-circle" size={36} color="gray" />
           <Text style={{ fontSize: 11, color: 'gray' }}>Prev</Text>
         </TouchableOpacity>
 
@@ -147,7 +147,7 @@ export default function SummaryChart() {
         />
 
         <TouchableOpacity onPress={handleNext} style={styles.controlBtn}>
-          <SymbolView name="chevron.right.circle.fill" size={36} type="hierarchical" tintColor={'gray'} />
+          <Ionicons name="chevron-forward-circle" size={36} color="gray" />
           <Text style={{ fontSize: 11, color: 'gray' }}>Next</Text>
         </TouchableOpacity>
       </View>
