@@ -88,7 +88,7 @@ function AppHeader() {
                     <Text style={{ marginLeft: 8, color: '#0f172a', fontWeight: '600' }}>Goals</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => { setShowMenu(false); router.push({ pathname: '/' }); }}
+                    onPress={() => { setShowMenu(false); router.push({ pathname: '/financilagoal' }); }}
                     style={{ paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center' }}
                   >
                     <Ionicons name="person-circle-outline" size={18} color="#0f172a" />
@@ -130,6 +130,8 @@ export default function TabLayout() {
             iconName = focused ? 'list' : 'list-outline';
           } else if (route.name === 'analysis') {
             iconName = focused ? 'trophy' : 'trophy-outline';
+          } else if (route.name === 'financilagoal') {
+            iconName = focused ? 'person' : 'person-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -156,6 +158,12 @@ export default function TabLayout() {
         name="analysis"
         options={{
           title: 'Goals',
+        }}
+      />
+      <Tabs.Screen
+        name="financilagoal"
+        options={{
+          title: 'Profile',
         }}
       />
     </Tabs>
