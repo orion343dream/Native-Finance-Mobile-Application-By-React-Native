@@ -1,4 +1,4 @@
-
+import Card from '@/components/ui/Card';
 import { useAuth } from '@/src/auth/AuthContext';
 import { colors, gradients, radius, spacing, typography } from '@/src/theme';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
@@ -7,38 +7,66 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-// A more detailed transaction item
+// Transaction item interface
 interface TransactionItemProps {
-  transaction: { id: string; description: string; amount: number; category: string; type: 'income' | 'expense'; date: string };
+  transaction: { 
+    id: string; 
+    description: string; 
+    amount: number; 
+    category: string; 
+    type: 'income' | 'expense'; 
+    date: string 
+  };
   onDelete: (id: string) => void;
   onEdit: (t: TransactionItemProps['transaction']) => void;
 }
+
 const TransactionItem = ({ transaction, onDelete, onEdit }: TransactionItemProps) => (
-  <View style={styles.transactionItem}>
-    <View style={styles.transactionDetails}>
-      <Text style={styles.transactionDesc}>{transaction.description}</Text>
-      <Text style={styles.transactionSub}>{transaction.category} | {transaction.date}</Text>
-    </View>
-    <Text style={[styles.transactionAmount, transaction.type === 'income' ? styles.income : styles.expense]}>
-      {transaction.type === 'income' ? '+' : '-'} {transaction.amount.toFixed(2)} LKR
-    </Text>
-    <View style={styles.transactionActions}>
+  <Card style={styles.transactionCard}>
+    <View style={styles.transactionHeader}>
+      <View style={styles.transactionIconContainer}>
+        <Ionicons 
+          name={transaction.type === 'income' ? "arrow-down-circle" : "arrow-up-circle"} 
+          size={20} 
+          color={transaction.type === 'income' ? colors.income : colors.expense} 
+        />
+      </View>
+      <View style={styles.transactionInfo}>
+        <Text style={styles.transactionDesc}>{transaction.description}</Text>
+        <Text style={styles.transactionMeta}>{transaction.category} • {transaction.date}</Text>
+      </View>
+      <View style={styles.transactionAmount}>
+        <Text style={[styles.amountText, transaction.type === 'income' ? styles.income : styles.expense]}>
+          {transaction.type === 'income' ? '+' : '-'} LKR {transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </Text>
+      </View>
+      <View style={styles.transactionActions}>
         <TouchableOpacity onPress={() => onEdit(transaction)} style={styles.actionButton}>
-            <Ionicons name="pencil-outline" size={20} color="#2563eb" />
+          <Ionicons name="pencil" size={16} color={colors.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => onDelete(transaction.id)} style={styles.actionButton}>
-            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+          <Ionicons name="trash-outline" size={16} color={colors.expense} />
         </TouchableOpacity>
+      </View>
     </View>
-  </View>
+  </Card>
 );
 
 export default function TransactionsScreen() {
   const { transactions, loading, deleteTransaction, addTransaction, updateTransaction } = useTransactions();
   const { user, updateUserCustomCategories } = useAuth();
   const [filter, setFilter] = useState('all'); // 'all', 'income', 'expense'
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const params = useLocalSearchParams();
   const [showAddPrompt, setShowAddPrompt] = useState(false);
@@ -48,6 +76,7 @@ export default function TransactionsScreen() {
     income: ['Salary', 'Freelance', 'Gift', 'Other'],
     expense: ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Other'],
   } as const;
+
   const [type, setType] = useState<'income' | 'expense' | ''>('');
   const [category, setCategory] = useState<string>('');
   const [customCategory, setCustomCategory] = useState<string>('');
@@ -60,28 +89,47 @@ export default function TransactionsScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const userCustomCategories = useMemo(() => {
-  // Normalize stored custom categories to an object with arrays. Stored values may be strings or objects { name, emoji }
-  const raw = user?.customCategories || { expense: [], income: [] };
-  const normalize = (arr: any[]) => arr.map(item => (typeof item === 'string' ? item : item?.name ?? ''));
-  return { expense: normalize(raw.expense || []), income: normalize(raw.income || []) };
+    const raw = user?.customCategories || { expense: [], income: [] };
+    const normalize = (arr: any[]) => arr.map(item => (typeof item === 'string' ? item : item?.name ?? ''));
+    return { expense: normalize(raw.expense || []), income: normalize(raw.income || []) };
   }, [user]);
 
   const combinedCategories = useMemo(() => {
     if (!type) return [] as string[];
-  const base = type === 'income' ? defaultCategories.income : defaultCategories.expense;
-  const customs = (userCustomCategories[type] || []) as string[];
-  // ensure unique and string labels only
-  const merged = Array.from(new Set([...base, ...customs.filter(Boolean)]));
-  return [...merged, '+ Add Category'];
+    const base = type === 'income' ? defaultCategories.income : defaultCategories.expense;
+    const customs = (userCustomCategories[type] || []) as string[];
+    const merged = Array.from(new Set([...base, ...customs.filter(Boolean)]));
+    return [...merged, '+ Add Category'];
   }, [type, userCustomCategories]);
 
   useEffect(() => {
     if (params?.openForm === 'true') {
       setShowAddPrompt(true);
     }
-  }, [params]);
+    
+    // Handle edit from dashboard
+    if (params?.editId && transactions.length > 0 && !isEditing) {
+      const transactionToEdit = transactions.find(t => t.id === params.editId);
+      if (transactionToEdit) {
+        setIsEditing(true);
+        setEditingId(transactionToEdit.id);
+        setDescription(transactionToEdit.description);
+        setAmount(String(transactionToEdit.amount));
+        setCategory(transactionToEdit.category);
+        setType(transactionToEdit.type);
+        setDate(transactionToEdit.date);
+        try {
+          setDateObj(new Date(transactionToEdit.date));
+        } catch (e) {
+          setDateObj(new Date());
+        }
+        
+        // Clear the editId parameter to prevent re-entry and ensure form visibility
+        router.replace('/transactions');
+      }
+    }
+  }, [params, transactions, isEditing, router]);
 
-  // Default date to today on mount
   useEffect(() => {
     const today = new Date();
     setDate(today.toISOString().split('T')[0]);
@@ -94,7 +142,9 @@ export default function TransactionsScreen() {
     setCustomCategory('');
     setDescription('');
     setAmount('');
-    setDate('');
+    const today = new Date();
+    setDate(today.toISOString().split('T')[0]);
+    setDateObj(today);
     setIsEditing(false);
     setEditingId(null);
   };
@@ -119,10 +169,10 @@ export default function TransactionsScreen() {
     if (!type || !description.trim() || !amount || !date) return;
     const parsedAmount = parseFloat(amount);
     if (Number.isNaN(parsedAmount)) return;
-  const finalCategory = category === '+ Add Category' ? customCategory.trim() : category;
+    const finalCategory = category === '+ Add Category' ? customCategory.trim() : category;
     if (!finalCategory) return;
+
     if (isEditing && editingId) {
-      // perform in-place update using TransactionsContext
       try {
         await updateTransaction(editingId, {
           description: description.trim(),
@@ -148,13 +198,17 @@ export default function TransactionsScreen() {
     resetForm();
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 600);
+  };
+
   const filteredTransactions = useMemo(() => {
     if (filter === 'all') return transactions;
     return transactions.filter(t => t.type === filter);
   }, [transactions, filter]);
   
   const onEdit = (transaction: TransactionItemProps['transaction']) => {
-    // Prefill inline form for editing
     setIsEditing(true);
     setEditingId(transaction.id);
     setDescription(transaction.description);
@@ -170,232 +224,754 @@ export default function TransactionsScreen() {
   };
 
   const onDelete = (id: string) => {
-    // Confirmation before deleting
     deleteTransaction(id);
   };
 
+  // Calculate statistics
+  const totalTransactions = transactions.length;
+  const incomeTransactions = transactions.filter(t => t.type === 'income');
+  const expenseTransactions = transactions.filter(t => t.type === 'expense');
+  const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const netBalance = totalIncome - totalExpense;
+
   if (loading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.income} />
+        <Text style={styles.loadingText}>Loading transactions...</Text>
+      </View>
+    );
   }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={gradients.screen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
-      {/* Inline Add/Edit Form */}
-      <View style={styles.formCard}>
-        <Text style={styles.formTitle}>{isEditing ? 'Edit Transaction' : 'Add New Transaction'}</Text>
-
-        <View style={styles.formRow}>
-          <Text style={styles.label}>Type</Text>
-          <View style={styles.chipsRow}>
-            <TouchableOpacity onPress={() => { setType('income'); setCategory(''); }} style={[styles.chip, type === 'income' && styles.chipActive]}>
-              <Text style={[styles.chipText, type === 'income' && styles.chipTextActive]}>Income</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setType('expense'); setCategory(''); }} style={[styles.chip, type === 'expense' && styles.chipActive]}>
-              <Text style={[styles.chipText, type === 'expense' && styles.chipTextActive]}>Expense</Text>
-            </TouchableOpacity>
+  const renderHeader = () => (
+    <>
+      {/* Header with Statistics */}
+      <LinearGradient colors={['#0f766e', '#059669']} style={styles.headerGradient}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerTitle}>
+            <Ionicons name="wallet" size={28} color="white" />
+            <Text style={styles.title}>Transactions</Text>
           </View>
-        </View>
-
-        {!!type && (
-          <View style={styles.formRow}>
-            <Text style={styles.label}>Category</Text>
-            <View style={styles.categoriesWrap}>
-              {combinedCategories.map((c) => (
-                <TouchableOpacity key={c} onPress={() => setCategory(c)} style={[styles.categoryPill, category === c && styles.categoryPillActive]}>
-                  <Text style={[styles.categoryPillText, category === c && styles.categoryPillTextActive]}>{c}</Text>
-                </TouchableOpacity>
-              ))}
+          <Text style={styles.subtitle}>Track your income and expenses</Text>
+          
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{totalTransactions}</Text>
+              <Text style={styles.statLabel}>Total</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={[styles.statNumber, { color: '#10b981' }]}>
+                {incomeTransactions.length}
+              </Text>
+              <Text style={styles.statLabel}>Income</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={[styles.statNumber, { color: '#ef4444' }]}>
+                {expenseTransactions.length}
+              </Text>
+              <Text style={styles.statLabel}>Expenses</Text>
             </View>
           </View>
-        )}
 
-        {category === '+ Add Category' && (
-          <View style={styles.formRow}>
-            <Text style={styles.label}>+ Add Category</Text>
-            <View style={styles.customRow}>
-              <TextInput
-                style={styles.customInputBox}
-                placeholder="Enter new category"
-                placeholderTextColor="#94a3b8"
-                value={customCategory}
-                onChangeText={setCustomCategory}
-                returnKeyType="done"
-              />
-              <TouchableOpacity onPress={handleAddCustomCategory} style={styles.addCatButton}>
-                <Text style={styles.addCatButtonText}>Add</Text>
+          <View style={styles.balanceCard}>
+            <Text style={styles.balanceLabel}>Net Balance</Text>
+            <Text style={[styles.balanceAmount, { color: netBalance >= 0 ? '#10b981' : '#ef4444' }]}>
+              LKR {Math.abs(netBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </View>
+        </View>
+      </LinearGradient>
+
+      <View style={styles.content}>
+        {/* Add New Transaction Card */}
+        <Card style={styles.addTransactionCard}>
+          <View style={styles.addTransactionHeader}>
+            <Ionicons name="add-circle-outline" size={24} color={colors.income} />
+            <Text style={styles.addTransactionTitle}>
+              {isEditing ? 'Edit Transaction' : 'Add New Transaction'}
+            </Text>
+          </View>
+
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>Type</Text>
+            <View style={styles.typeChips}>
+              <TouchableOpacity 
+                onPress={() => { setType('income'); setCategory(''); }} 
+                style={[styles.typeChip, type === 'income' && styles.typeChipActive]}
+              >
+                <Ionicons 
+                  name="arrow-down-circle" 
+                  size={16} 
+                  color={type === 'income' ? 'white' : colors.income} 
+                />
+                <View style={{ marginLeft: spacing.xs }}>
+                  <Text style={[styles.typeChipText, type === 'income' && styles.typeChipTextActive]}>
+                    Income
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => { setType('expense'); setCategory(''); }} 
+                style={[styles.typeChip, type === 'expense' && styles.typeChipActiveExpense]}
+              >
+                <Ionicons 
+                  name="arrow-up-circle" 
+                  size={16} 
+                  color={type === 'expense' ? 'white' : colors.expense} 
+                />
+                <View style={{ marginLeft: spacing.xs }}>
+                  <Text style={[styles.typeChipText, type === 'expense' && styles.typeChipTextActive]}>
+                    Expense
+                  </Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
-        )}
 
-        <View style={styles.formRow}>
-          <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={styles.textInputBox}
-            placeholder="Description"
-            placeholderTextColor="#94a3b8"
-            value={description}
-            onChangeText={setDescription}
-            returnKeyType="next"
-          />
-        </View>
+          {!!type && (
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Category</Text>
+              <View style={styles.categoriesGrid}>
+                {combinedCategories.map((c) => (
+                  <TouchableOpacity 
+                    key={c} 
+                    onPress={() => setCategory(c)} 
+                    style={[styles.categoryChip, category === c && (type === 'expense' ? styles.categoryChipActiveExpense : styles.categoryChipActive)]}
+                  >
+                    <Text style={[styles.categoryChipText, category === c && styles.categoryChipTextActive]}>
+                      {c}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
 
-        <View style={styles.formRowInline}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Text style={styles.label}>Amount (LKR)</Text>
+          {category === '+ Add Category' && (
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Custom Category</Text>
+              <View style={styles.customCategoryRow}>
+                <TextInput
+                  style={styles.customCategoryInput}
+                  placeholder="Enter new category"
+                  placeholderTextColor={colors.textSecondary}
+                  value={customCategory}
+                  onChangeText={setCustomCategory}
+                  returnKeyType="done"
+                />
+                <TouchableOpacity onPress={handleAddCustomCategory} style={styles.addCategoryButton}>
+                  <Text style={styles.addCategoryButtonText}>Add</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>Description</Text>
             <TextInput
-              style={styles.textInputBox}
-              placeholder="0.00"
-              placeholderTextColor="#94a3b8"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
+              style={styles.textInput}
+              placeholder="Enter transaction description"
+              placeholderTextColor={colors.textSecondary}
+              value={description}
+              onChangeText={setDescription}
               returnKeyType="next"
             />
           </View>
-          <View style={{ flex: 1, marginLeft: 8 }}>
-            <Text style={styles.label}>Date</Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.textInputBox}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Text style={{ color: date ? '#0f172a' : '#94a3b8' }}>{date || 'YYYY-MM-DD'}</Text>
+
+          <View style={styles.inputRowInline}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Amount (LKR)</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="0.00"
+                placeholderTextColor={colors.textSecondary}
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="decimal-pad"
+                returnKeyType="next"
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Date</Text>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={styles.dateInput}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={[styles.dateText, { color: date ? colors.textPrimary : colors.textSecondary }]}>
+                  {date || 'Select date'}
+                </Text>
+                <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateObj}
+                  mode="date"
+                  display="default"
+                  onChange={(event: unknown, selectedDate?: Date) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) {
+                      setDateObj(selectedDate);
+                      const iso = selectedDate.toISOString().split('T')[0];
+                      setDate(iso);
+                    }
+                  }}
+                />
+              )}
+            </View>
+          </View>
+
+          <View style={styles.formActions}>
+            <TouchableOpacity onPress={onSubmitForm} style={styles.submitButton}>
+              <Ionicons 
+                name={isEditing ? "checkmark" : "add"} 
+                size={20} 
+                color="white" 
+              />
+              <View style={{ marginLeft: spacing.xs }}>
+                <Text style={styles.submitButtonText}>
+                  {isEditing ? 'Update Transaction' : 'Add Transaction'}
+                </Text>
+              </View>
             </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={dateObj}
-                mode="date"
-                display="default"
-                onChange={(event: unknown, selectedDate?: Date) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) {
-                    setDateObj(selectedDate);
-                    const iso = selectedDate.toISOString().split('T')[0];
-                    setDate(iso);
-                  }
-                }}
-              />)
-            }
+            {isEditing && (
+              <TouchableOpacity onPress={resetForm} style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </Card>
+
+        {/* Transactions List Header */}
+        <View style={styles.listHeader}>
+          <Text style={styles.listTitle}>
+            Recent Transactions ({filteredTransactions.length})
+          </Text>
+          <View style={styles.filterButtons}>
+            <TouchableOpacity 
+              onPress={() => setFilter('all')} 
+              style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
+            >
+              <Text style={[styles.filterButtonText, filter === 'all' && styles.filterButtonTextActive]}>
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => setFilter('income')} 
+              style={[styles.filterButton, filter === 'income' && styles.filterButtonActive]}
+            >
+              <Text style={[styles.filterButtonText, filter === 'income' && styles.filterButtonTextActive]}>
+                Income
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => setFilter('expense')} 
+              style={[styles.filterButton, filter === 'expense' && styles.filterButtonActive]}
+            >
+              <Text style={[styles.filterButtonText, filter === 'expense' && styles.filterButtonTextActive]}>
+                Expenses
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.actionsRow}>
-          <TouchableOpacity onPress={onSubmitForm} style={[styles.primaryButton]}>
-            <Text style={styles.primaryButtonText}>{isEditing ? 'Update Transaction' : 'Add Transaction'}</Text>
-          </TouchableOpacity>
-          {isEditing && (
-            <TouchableOpacity onPress={resetForm} style={[styles.secondaryButton]}>
-              <Text style={styles.secondaryButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          )}
-        </View>
       </View>
+    </>
+  );
+
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Card style={styles.emptyCard}>
+        <Ionicons name="receipt-outline" size={48} color={colors.textSecondary} />
+        <Text style={styles.emptyTitle}>No Transactions Yet</Text>
+        <Text style={styles.emptyText}>
+          Add your first transaction to start tracking your finances!
+        </Text>
+      </Card>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={filteredTransactions}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.transactionItemWrapper}>
+            <TransactionItem transaction={item} onDelete={onDelete} onEdit={onEdit} />
+          </View>
+        )}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyComponent}
+        onRefresh={onRefresh}
+        refreshing={refreshing}
+        contentContainerStyle={styles.flatListContent}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {/* Add Transaction Prompt Modal */}
       {showAddPrompt && (
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+          <Card style={styles.modalCard}>
             <Text style={styles.modalTitle}>Add New Transaction</Text>
             <Text style={styles.modalText}>Would you like to add a new transaction now?</Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => { setShowAddPrompt(false); router.push({ pathname: '/add-transaction' }); }} style={[styles.modalButton, styles.modalPrimary]}>
-                <Text style={styles.modalPrimaryText}>Open Form</Text>
+              <TouchableOpacity 
+                onPress={() => setShowAddPrompt(false)} 
+                style={[styles.modalButton, styles.modalPrimary]}
+              >
+                <Text style={styles.modalPrimaryText}>Got It</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowAddPrompt(false)} style={[styles.modalButton, styles.modalSecondary]}>
+              <TouchableOpacity 
+                onPress={() => setShowAddPrompt(false)} 
+                style={[styles.modalButton, styles.modalSecondary]}
+              >
                 <Text style={styles.modalSecondaryText}>Cancel</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Card>
         </View>
       )}
-      <Text style={styles.title}>All Transactions</Text>
-      
-      <View style={styles.filterContainer}>
-        <TouchableOpacity 
-          style={[styles.filterButton, filter === 'all' && styles.activeFilter]}
-          onPress={() => setFilter('all')}
-        >
-          <Text style={[styles.filterText, filter === 'all' && styles.activeFilterText]}>All</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.filterButton, filter === 'income' && styles.activeFilter]}
-          onPress={() => setFilter('income')}
-        >
-          <Text style={[styles.filterText, filter === 'income' && styles.activeFilterText]}>Income</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.filterButton, filter === 'expense' && styles.activeFilter]}
-          onPress={() => setFilter('expense')}
-        >
-          <Text style={[styles.filterText, filter === 'expense' && styles.activeFilterText]}>Expenses</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={filteredTransactions}
-        renderItem={({ item }) => <TransactionItem transaction={item} onDelete={onDelete} onEdit={onEdit} />}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={styles.emptyText}>No transactions found.</Text>}
-      />
-      </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.md },
-  title: { ...typography.title, marginBottom: spacing.md },
-  filterContainer: { flexDirection: 'row', marginBottom: spacing.md, justifyContent: 'center' },
-  filterButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#1e293b', marginHorizontal: 4, borderWidth: 1, borderColor: colors.border },
-  activeFilter: { backgroundColor: colors.income },
-  filterText: { color: colors.textSecondary, fontWeight: '600' },
-  activeFilterText: { color: 'white' },
-  transactionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, padding: 12, borderRadius: radius.md, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
-  transactionDetails: { flex: 1 },
-  transactionDesc: { fontSize: 16, fontWeight: '500', color: colors.textPrimary },
-  transactionSub: { fontSize: 12, color: colors.textSecondary },
-  transactionAmount: { fontSize: 16, fontWeight: 'bold', marginHorizontal: 8, color: colors.textPrimary },
-  income: { color: colors.income },
-  expense: { color: colors.expense },
-  transactionActions: { flexDirection: 'row' },
-  actionButton: { padding: 8 },
-  emptyText: { textAlign: 'center', marginTop: 20, color: colors.textSecondary },
-  formCard: { backgroundColor: colors.card, padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.border },
-  formTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 12 },
-  formRow: { marginBottom: 12 },
-  formRowInline: { flexDirection: 'row', marginBottom: 12 },
-  label: { ...typography.label, marginBottom: 6 },
-  chipsRow: { flexDirection: 'row' },
-  chip: { paddingVertical: 8, paddingHorizontal: 14, backgroundColor: '#1e293b', borderRadius: 20, marginRight: 8, borderWidth: 1, borderColor: colors.border },
-  chipActive: { backgroundColor: colors.income },
-  chipText: { color: colors.textSecondary, fontWeight: '600' },
-  chipTextActive: { color: 'white' },
-  categoriesWrap: { flexDirection: 'row', flexWrap: 'wrap' },
-  categoryPill: { paddingVertical: 6, paddingHorizontal: 12, backgroundColor: '#1e293b', borderRadius: 20, marginRight: 8, marginBottom: 8, borderWidth: 1, borderColor: colors.border },
-  categoryPillActive: { backgroundColor: colors.income },
-  categoryPillText: { color: colors.textSecondary, fontWeight: '600' },
-  categoryPillTextActive: { color: 'white' },
-  textInputBox: { backgroundColor: '#0b1222', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary },
-  textInputPlaceholder: { color: '#94a3b8' },
-  customRow: { flexDirection: 'row', alignItems: 'center' },
-  customInputBox: { flex: 1, backgroundColor: '#0b1222', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, marginRight: 8, borderWidth: 1, borderColor: colors.border, color: colors.textPrimary },
-  customInputPlaceholder: { color: '#94a3b8' },
-  addCatButton: { backgroundColor: colors.income, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 },
-  addCatButtonText: { color: 'white', fontWeight: '700' },
-  actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  primaryButton: { flex: 1, backgroundColor: colors.income, paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginRight: 8 },
-  primaryButtonText: { color: 'white', fontWeight: '700' },
-  secondaryButton: { flex: 1, backgroundColor: '#1e293b', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginLeft: 8, borderWidth: 1, borderColor: colors.border },
-  secondaryButtonText: { color: colors.textPrimary, fontWeight: '700' },
-  // Simple inline modal styles
-  modalOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
-  modalCard: { width: '85%', backgroundColor: colors.card, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: colors.border },
-  modalTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 6, textAlign: 'center' },
-  modalText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', marginBottom: 16 },
-  modalActions: { flexDirection: 'row', justifyContent: 'space-between' },
-  modalButton: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
-  modalPrimary: { backgroundColor: colors.income, marginRight: 8 },
-  modalSecondary: { backgroundColor: '#1e293b', marginLeft: 8, borderWidth: 1, borderColor: colors.border },
-  modalPrimaryText: { color: 'white', fontWeight: '700' },
-  modalSecondaryText: { color: colors.textPrimary, fontWeight: '700' },
+  container: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8fafc',
+  },
+  loadingText: {
+    marginTop: spacing.sm,
+    color: colors.textSecondary,
+    fontSize: 16,
+  },
+  headerGradient: {
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.md,
+    borderBottomLeftRadius: radius.lg,
+    borderBottomRightRadius: radius.lg,
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: 'white',
+    marginLeft: spacing.sm,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginBottom: spacing.md,
+  },
+  statBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: 'white',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  balanceCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    backdropFilter: 'blur(10px)',
+  },
+  balanceLabel: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 4,
+  },
+  balanceAmount: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  content: {
+    padding: spacing.md,
+  },
+  addTransactionCard: {
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#e5f3f0',
+    borderStyle: 'dashed',
+  },
+  addTransactionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  addTransactionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginLeft: spacing.sm,
+  },
+  inputRow: {
+    marginBottom: spacing.md,
+  },
+  inputRowInline: {
+    flexDirection: 'row',
+    marginBottom: spacing.md,
+  },
+  inputGroup: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  typeChips: {
+    flexDirection: 'row',
+  },
+  typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginRight: spacing.sm,
+  },
+  typeChipActive: {
+    backgroundColor: colors.income,
+    borderColor: colors.income,
+  },
+  typeChipActiveExpense: {
+    backgroundColor: colors.expense,
+    borderColor: colors.expense,
+  },
+  typeChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  typeChipTextActive: {
+    color: 'white',
+  },
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  categoryChip: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginRight: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  categoryChipActive: {
+    backgroundColor: colors.income,
+    borderColor: colors.income,
+  },
+  categoryChipActiveExpense: {
+    backgroundColor: colors.expense,
+    borderColor: colors.expense,
+  },
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  categoryChipTextActive: {
+    color: 'white',
+  },
+  customCategoryRow: {
+    flexDirection: 'row',
+  },
+  customCategoryInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    fontSize: 14,
+    color: colors.textPrimary,
+    marginRight: spacing.sm,
+  },
+  addCategoryButton: {
+    backgroundColor: colors.income,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    justifyContent: 'center',
+  },
+  addCategoryButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    padding: spacing.md,
+    borderRadius: radius.md,
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  dateInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    padding: spacing.md,
+    borderRadius: radius.md,
+  },
+  dateText: {
+    fontSize: 16,
+  },
+  formActions: {
+    marginTop: spacing.sm,
+  },
+  submitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.income,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  cancelButton: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  cancelButtonText: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  listTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  filterButtons: {
+    flexDirection: 'row',
+  },
+  filterButton: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginLeft: spacing.xs,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.income,
+    borderColor: colors.income,
+  },
+  filterButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  filterButtonTextActive: {
+    color: 'white',
+  },
+  emptyCard: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: 'white',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  transactionCard: {
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  transactionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  transactionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f0f9ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  transactionInfo: {
+    flex: 1,
+  },
+  transactionDesc: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  transactionMeta: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  transactionAmount: {
+    marginRight: spacing.sm,
+  },
+  amountText: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  income: {
+    color: colors.income,
+  },
+  expense: {
+    color: colors.expense,
+  },
+  transactionActions: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    padding: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: '#f8fafc',
+    marginLeft: spacing.xs,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCard: {
+    width: '85%',
+    backgroundColor: 'white',
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  modalActions: {
+    flexDirection: 'row',
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    alignItems: 'center',
+  },
+  modalPrimary: {
+    backgroundColor: colors.income,
+    marginRight: spacing.sm,
+  },
+  modalSecondary: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  modalPrimaryText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  modalSecondaryText: {
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  flatListContent: {
+    paddingBottom: spacing.lg,
+  },
+  transactionItemWrapper: {
+    paddingHorizontal: spacing.md,
+  },
+  emptyContainer: {
+    paddingHorizontal: spacing.md,
+  },
 });
