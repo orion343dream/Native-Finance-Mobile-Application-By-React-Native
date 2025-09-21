@@ -184,7 +184,7 @@ const DashboardScreen = () => {
         </View>
       </View>
 
-      <View style={styles.section}>
+      <View style={[styles.section, styles.expandedSection]}>
         <Text style={styles.sectionTitle}>Income vs. Expense</Text>
         <SummaryChart />
       </View>
@@ -274,6 +274,7 @@ const styles = StyleSheet.create({
   addButton: { flexDirection: 'row', backgroundColor: colors.income, padding: 14, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginHorizontal: spacing.md, marginVertical: spacing.sm },
   addButtonText: { color: 'white', fontSize: 16, fontWeight: '600', marginLeft: 8 },
   section: { backgroundColor: colors.card, padding: spacing.md, marginVertical: spacing.sm, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border },
+  expandedSection: { marginHorizontal: spacing.sm, paddingHorizontal: spacing.lg },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 8, color: colors.textPrimary },
   transactionItem: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
   transactionDesc: { fontSize: 16, color: colors.textPrimary },

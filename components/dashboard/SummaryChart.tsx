@@ -93,7 +93,7 @@ export default function SummaryChart() {
 
   // compute chart width to allow expansion to the right based on number of bars
   const perBarSpace = 18 + 12; // barWidth + spacing
-  const computedWidth = Math.max(width - 32, barData.length * perBarSpace + 80);
+  const computedWidth = Math.max(width - 16, barData.length * perBarSpace + 80);
 
   return (
     <View style={styles.container}>
@@ -156,7 +156,7 @@ export default function SummaryChart() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: spacing.md },
+  container: { paddingHorizontal: 0, paddingVertical: spacing.sm },
   controlsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
   controlBtn: { alignItems: 'center' },
 });
