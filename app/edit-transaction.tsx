@@ -3,7 +3,7 @@ import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTransactions } from '../src/transactions/TransactionsContext';
 
 const EditTransactionScreen = () => {
@@ -56,7 +56,11 @@ const EditTransactionScreen = () => {
 
   return (
   <LinearGradient colors={["#ecfdf5", "#d1fae5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradient}>
-  <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Edit Transaction</Text>
 
       <TextInput
@@ -64,6 +68,8 @@ const EditTransactionScreen = () => {
         placeholder="Description"
         value={description}
         onChangeText={setDescription}
+        autoCapitalize="none"
+        blurOnSubmit={false}
       />
       <TextInput
         style={styles.input}
@@ -71,12 +77,16 @@ const EditTransactionScreen = () => {
         value={amount}
         onChangeText={setAmount}
         keyboardType="numeric"
+        autoCapitalize="none"
+        blurOnSubmit={false}
       />
       <TextInput
         style={styles.input}
         placeholder="Date (YYYY-MM-DD)"
         value={date}
         onChangeText={setDate}
+        autoCapitalize="none"
+        blurOnSubmit={false}
       />
 
       <Text style={styles.label}>Category</Text>
@@ -107,7 +117,8 @@ const EditTransactionScreen = () => {
       <TouchableOpacity style={styles.addButton} onPress={handleUpdateTransaction}>
         <Text style={styles.addButtonText}>Update Transaction</Text>
       </TouchableOpacity>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
     </LinearGradient>
   );
 };

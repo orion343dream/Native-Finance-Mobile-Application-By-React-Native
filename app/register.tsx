@@ -49,6 +49,8 @@ const RegisterScreen = () => {
           placeholderTextColor="#64748b"
           value={name}
           onChangeText={setName}
+          autoCapitalize="words"
+          blurOnSubmit={false}
         />
         
         <TextInput
@@ -59,6 +61,7 @@ const RegisterScreen = () => {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          blurOnSubmit={false}
         />
         
         <TextInput
@@ -68,6 +71,7 @@ const RegisterScreen = () => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          blurOnSubmit={false}
         />
         
         <TextInput

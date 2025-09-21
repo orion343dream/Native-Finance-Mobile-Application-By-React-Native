@@ -30,7 +30,7 @@ const LoginScreen = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-      const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
+      const redirectUri = AuthSession.makeRedirectUri({});
       const discovery = {
         authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
@@ -46,7 +46,7 @@ const LoginScreen = () => {
         usePKCE: false,
         extraParams: { nonce: Math.random().toString(36).slice(2), prompt: 'select_account' },
       });
-      const result = await authRequest.promptAsync(discovery, { useProxy: true });
+      const result = await authRequest.promptAsync(discovery);
       if (result.type === 'success' && (result as any).params?.id_token) {
         const idToken = (result as any).params.id_token as string;
         Alert.alert('Google Sign-In', 'Google authentication successful');
@@ -81,6 +81,7 @@ const LoginScreen = () => {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          blurOnSubmit={false}
         />
         <TextInput
           style={styles.input}
@@ -89,6 +90,7 @@ const LoginScreen = () => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          blurOnSubmit={false}
         />
 
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>

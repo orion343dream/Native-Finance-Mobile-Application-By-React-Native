@@ -1,4 +1,4 @@
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import Card from './Card';
 
@@ -27,7 +27,7 @@ export default function TransactionListItem({
   categoryInfo,
 }: TransactionListItemProps) {
   const isExpense = String(transaction.type).toLowerCase() === 'expense';
-  const iconName = isExpense ? 'minuscircle' : 'pluscircle';
+  const iconName = isExpense ? 'remove-circle' : 'add-circle';
   const color = isExpense ? '#ef4444' : '#16a34a';
   const categoryColor = categoryColors[categoryInfo?.name ?? 'Default'];
   const emojiMap: Record<string, string> = {
@@ -89,11 +89,11 @@ function CategoryItem({ categoryColor, categoryInfo, emoji }: { categoryColor: s
   );
 }
 
-function Amount({ iconName, color, amount }: { iconName: 'minuscircle' | 'pluscircle'; color: string; amount: number }) {
+function Amount({ iconName, color, amount }: { iconName: 'remove-circle' | 'add-circle'; color: string; amount: number }) {
   const display = `LKR ${amount.toFixed(2)}`;
   return (
     <View style={styles.row}>
-      <AntDesign name={iconName} size={18} color={color} />
+      <Ionicons name={iconName} size={18} color={color} />
       <Text numberOfLines={1} style={[styles.amount, { maxWidth: '80%' }]}>{display}</Text>
     </View>
   );
