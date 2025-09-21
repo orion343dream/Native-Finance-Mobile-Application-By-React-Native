@@ -37,3 +37,8 @@ externalPort = 80
 [[ports]]
 localPort = 33953
 externalPort = 3000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["npx", "expo", "start", "--web", "--port", "5000", "--host", "lan", "--no-dev"]
+build = ["npx", "expo", "export", "--platform", "web"]
