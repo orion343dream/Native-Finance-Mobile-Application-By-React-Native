@@ -1,4 +1,4 @@
-# 📊 Native Finance (SpendSight)
+# 📊 Native Finance
 
 **Your all-in-one personal finance companion** — built with **Expo + React Native**, powered by **Firebase**, and designed with a clean modular service architecture.
 
@@ -15,8 +15,9 @@
 
 ### 📱 Live Demo
 
-🎬 *Coming soon* – Full video walkthrough of features
-[![🎥 Watch Demo](https://img.shields.io/badge/🎥_Watch_Demo-Watch Now-FF0000?style=for-the-badge\&logo=youtube\&logoColor=white\&labelColor=black)](https://youtu.be/JD7lmaqQJBg?si=i7Sm1_AnLDRIeOpr)
+🎬 *Now Available* – Full video walkthrough of features  
+
+[![🎥 Watch Demo](https://img.shields.io/badge/🎥_Watch_Demo-Watch_Now-FF0000?style=for-the-badge&logo=youtube&logoColor=white&labelColor=black)](https://youtu.be/JD7lmaqQJBg?si=i7Sm1_AnLDRIeOpr)
 
 ### 📲 Download APK
 
