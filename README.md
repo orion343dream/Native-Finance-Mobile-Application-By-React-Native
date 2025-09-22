@@ -16,11 +16,11 @@
 ### 📱 Live Demo
 
 🎬 *Coming soon* – Full video walkthrough of features
-[![🎥 Watch Demo](https://img.shields.io/badge/🎥_Watch_Demo-Coming_Soon-FF0000?style=for-the-badge\&logo=youtube\&logoColor=white\&labelColor=black)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+[![🎥 Watch Demo](https://img.shields.io/badge/🎥_Watch_Demo-Coming_Soon-FF0000?style=for-the-badge\&logo=youtube\&logoColor=white\&labelColor=black)](https://youtu.be/JD7lmaqQJBg?si=i7Sm1_AnLDRIeOpr)
 
 ### 📲 Download APK
 
-[![📱 Download APK](https://img.shields.io/badge/📱_Download_APK-Available_Now-4285F4?style=for-the-badge\&logo=googledrive\&logoColor=white\&labelColor=black)](https://drive.google.com/drive/folders/1PbfEcWlcJ5sDmDE1Mwdln0aK4EjE163m?usp=sharing)
+[![📱 Download APK](https://img.shields.io/badge/📱_Download_APK-Available_Now-4285F4?style=for-the-badge\&logo=googledrive\&logoColor=white\&labelColor=black)](https://drive.google.com/file/d/1rpSB-j9hSQeEVeFztXYN-zW_kYJxNRwT/view?pli=1)
 
 </div>
 
@@ -28,7 +28,7 @@
 
 ## ✨ Overview
 
-**Native Finance (SpendSight)** helps you:
+**Native Finance** helps you:
 
 * Track **expenses, incomes, accounts, and goals**
 * Securely log in with **Firebase Auth** (Email, Google, Apple)
