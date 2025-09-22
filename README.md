@@ -1,12 +1,3 @@
-```md
-> **Your all-in-one personal finance companion** — built with **Expo + React Native**, powered by **Firebase**, and designed with a clean modular service architecture.
-```
-
-GitHub interprets the `>` as the start of YAML block scalar.
-✅ Fix: Wrap it as a blockquote properly (with a space after `>`), or replace it with plain text.
-
-Here’s the **fixed complete README.md** (safe for GitHub, no YAML parsing issues):
-
 ---
 
 # 📊 Native Finance (SpendSight)
