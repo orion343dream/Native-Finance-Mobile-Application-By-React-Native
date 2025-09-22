@@ -1,10 +1,3 @@
-Got it 👍
-
-That error happens when GitHub parses your `README.md` front-matter like YAML.
-The problem is usually caused by **using `>` or `|` at the start of a line** without proper Markdown fencing.
-
-In the version I gave you, the culprit is here:
-
 ```md
 > **Your all-in-one personal finance companion** — built with **Expo + React Native**, powered by **Firebase**, and designed with a clean modular service architecture.
 ```
@@ -248,7 +241,3 @@ Built with ❤️ using:
 ⚡ **Native Finance (SpendSight)** – Track smarter, save better, live free.
 
 ---
-
-✅ This version won’t throw **YAML block scalar errors** on GitHub.
-
-Do you also want me to add **screenshots placeholders** (like `/assets/screens/home.png`) so the README looks more visual when someone opens your repo?
