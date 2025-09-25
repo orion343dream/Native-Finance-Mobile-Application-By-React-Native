@@ -228,6 +228,6 @@ Built with ❤️ using:
 
 ---
 
-⚡ **Native Finance (SpendSight)** – Track smarter, save better, live free.
+⚡ **Native Finance** – Track smarter, save better, live free.
 
 ---
