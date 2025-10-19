@@ -81,14 +81,14 @@ function AppHeader() {
                     <Text style={{ marginLeft: 8, color: '#0f172a', fontWeight: '600' }}>Transactions</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => { setShowMenu(false); router.push({ pathname: '/financilagoal' }); }}
+                    onPress={() => { setShowMenu(false); router.push({ pathname: '/financialgoal' }); }}
                     style={{ paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center' }}
                   >
                     <Ionicons name="trophy-outline" size={18} color="#0f172a" />
                     <Text style={{ marginLeft: 8, color: '#0f172a', fontWeight: '600' }}>Goals</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    onPress={() => { setShowMenu(false); router.push({ pathname: '/financilagoal' }); }}
+                    onPress={() => { setShowMenu(false); router.push({ pathname: '/profile' }); }}
                     style={{ paddingHorizontal: 12, paddingVertical: 10, flexDirection: 'row', alignItems: 'center' }}
                   >
                     <Ionicons name="person-circle-outline" size={18} color="#0f172a" />
@@ -128,9 +128,9 @@ export default function TabLayout() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'transactions') {
             iconName = focused ? 'list' : 'list-outline';
-          } else if (route.name === 'analysis') {
+          } else if (route.name === 'financialgoal') {
             iconName = focused ? 'trophy' : 'trophy-outline';
-          } else if (route.name === 'financilagoal') {
+          } else if (route.name === 'profile') {
             iconName = focused ? 'person' : 'person-outline';
           }
 
@@ -155,13 +155,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="analysis"
+        name="financialgoal"
         options={{
           title: 'Goals',
         }}
       />
       <Tabs.Screen
-        name="financilagoal"
+        name="profile"
         options={{
           title: 'Profile',
         }}

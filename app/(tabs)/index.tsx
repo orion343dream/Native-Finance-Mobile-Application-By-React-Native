@@ -1,13 +1,12 @@
 
 import { useAuth } from '@/src/auth/AuthContext';
-import { colors, gradients, radius, spacing, typography } from '@/src/theme';
+import { colors, radius, spacing } from '@/src/theme';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, LayoutChangeEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
 import LineChartBicolor from '../../components/dashboard/LineChartBicolor';
 import SpendingAnalysis from '../../components/dashboard/SpendingAnalysis';
 import SummaryChart from '../../components/dashboard/SummaryChart';
@@ -274,39 +273,64 @@ const DashboardScreen = () => {
             </View>
             <SummaryChart />
           </View>
+<View onLayout={onChartLayout} ref={chartContainerRef} style={{ position: 'relative' }}>
+  {selectedLabel !== '' && selectedValue !== null && (
+    <View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: Math.min(
+          Math.max(
+            8,
+            (selectedIndex !== null && balanceSparkline.labels.length > 1)
+              ? (selectedIndex / (balanceSparkline.labels.length - 1)) * (chartWidthPx)
+              : 8
+          ),
+          (chartWidthPx || (width - 32)) - 140 // clamp so it doesn’t exceed right edge
+        ),
+        top: (() => {
+          // ✅ compute vertical Y position based on value
+          const data = balanceSparkline.datasets?.[0]?.data || [];
+          if (selectedIndex !== null && data.length > 0) {
+            const min = Math.min(...data, 0);
+            const max = Math.max(...data, 0);
+            const range = max - min || 1;
+            const value = data[selectedIndex];
+            const y = 180 - ((value - min) / range) * 180;
+            return Math.max(8, Math.min(y - 30, 150)); // clamp inside chart
+          }
+          return 8;
+        })(),
+        zIndex: 10,
+      }}
+    >
+      <View
+        style={{
+          backgroundColor: '#047857',
+          paddingHorizontal: 10,
+          paddingVertical: 6,
+          borderRadius: 10,
+        }}
+      >
+        <Text style={{ color: 'white', fontWeight: '700' }}>
+          {selectedLabel} — LKR {selectedValue?.toFixed(2)}
+        </Text>
+      </View>
+    </View>
+  )}
 
-          <View style={styles.modernChartCard}>
-            <View style={styles.chartHeader}>
-              <Ionicons name="trending-up" size={20} color={colors.income} />
-              <Text style={styles.chartTitle}>Balance Trend</Text>
-            </View>
-        <View onLayout={onChartLayout} ref={chartContainerRef}>
-          {selectedLabel !== '' && selectedValue !== null && (
-            <View pointerEvents="none" style={{ position: 'relative', height: 0 }}>
-              {/* compute tooltip x from selectedIndex */}
-              <View style={{ position: 'absolute', left: Math.max(8, (selectedIndex !== null && balanceSparkline.labels.length > 1) ? (selectedIndex / (balanceSparkline.labels.length - 1)) * (chartWidthPx) : 8), top: -36 }}>
-                <View style={{ backgroundColor: '#047857', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 }}>
-                  <Text style={{ color: 'white', fontWeight: '700' }}>{selectedLabel} — LKR {selectedValue?.toFixed(2)}</Text>
-                </View>
-              </View>
-            </View>
-          )}
-          <LineChartBicolor
-            data={(balanceSparkline.datasets && balanceSparkline.datasets[0] && balanceSparkline.datasets[0].data) || []}
-            width={chartWidthPx || (width - 32)}
-            height={180}
-            strokeWidth={2}
-          />
-            </View>
-          </View>
-        </View>
+  <LineChartBicolor
+    data={balanceSparkline.datasets?.[0]?.data || []}
+    width={chartWidthPx || (width - 32)}
+    height={180}
+    strokeWidth={2}
+  />
+</View>
+
+
 
         {/* Spending Analysis */}
         <View style={styles.modernAnalysisCard}>
-          <View style={styles.analysisHeader}>
-            <Ionicons name="pie-chart" size={20} color={colors.income} />
-            <Text style={styles.chartTitle}>Spending Analysis</Text>
-          </View>
           <SpendingAnalysis />
         </View>
 

@@ -1,20 +1,21 @@
 import Card from '@/components/ui/Card';
 import { useAuth } from '@/src/auth/AuthContext';
-import { colors, radius, spacing, typography } from '@/src/theme';
+import { colors, radius, spacing } from '@/src/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import { useRouter } from 'expo-router';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const router = useRouter();
 
   const profileStats = [
     { icon: 'wallet-outline', label: 'Account Type', value: 'Premium' },
@@ -24,7 +25,7 @@ export default function ProfileScreen() {
   ];
 
   const menuItems = [
-    { icon: 'person-outline', label: 'Edit Profile', action: () => {} },
+    { icon: 'person-outline', label: 'Edit Profile', action: () => { /* navigate to edit - cast to any to satisfy router types */ (router as any)?.push?.('/edit-profile'); } },
     { icon: 'notifications-outline', label: 'Notifications', action: () => {} },
     { icon: 'lock-closed-outline', label: 'Privacy & Security', action: () => {} },
     { icon: 'help-circle-outline', label: 'Help & Support', action: () => {} },
@@ -96,8 +97,8 @@ const styles = StyleSheet.create({
   headerGradient: {
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.md,
-    borderBottomLeftRadius: radius.xl,
-    borderBottomRightRadius: radius.xl,
+  borderBottomLeftRadius: radius.lg,
+  borderBottomRightRadius: radius.lg,
   },
   profileHeader: {
     flexDirection: 'row',

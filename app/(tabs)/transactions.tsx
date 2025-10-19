@@ -1,15 +1,18 @@
 import Card from '@/components/ui/Card';
 import { useAuth } from '@/src/auth/AuthContext';
-import { colors, gradients, radius, spacing, typography } from '@/src/theme';
+import { colors, radius, spacing } from '@/src/theme';
 import { useTransactions } from '@/src/transactions/TransactionsContext';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -227,6 +230,56 @@ export default function TransactionsScreen() {
     deleteTransaction(id);
   };
 
+  // Triple-tap detection state per category key.
+  // Use a React ref so the state persists across re-renders.
+  const tapStateRef = useRef<Record<string, { count: number; lastTs: number }>>({});
+
+  const handleCategoryTap = (c: string) => {
+    // Normal selection behavior first
+    setCategory(c);
+
+    // Only consider triple-tap for custom categories (not defaults or + Add Category)
+    if (!user || !type) return;
+    if (!c || c === '+ Add Category') return;
+    const customs = userCustomCategories[type] || [];
+    if (!customs.includes(c)) return;
+
+    const now = Date.now();
+    const state = tapStateRef.current[c] || { count: 0, lastTs: 0 };
+    // Reset if last tap was too long ago (> 700ms)
+    if (now - state.lastTs > 700) {
+      state.count = 1;
+    } else {
+      state.count = state.count + 1;
+    }
+    state.lastTs = now;
+    tapStateRef.current[c] = state;
+
+    if (state.count >= 3) {
+      // Reset count immediately to avoid repeated triggers
+      tapStateRef.current[c] = { count: 0, lastTs: 0 };
+
+      Alert.alert(
+        'Remove category',
+        `Do you want to remove the custom category "${c}"? This cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Remove', style: 'destructive', onPress: async () => {
+              try {
+                const updated = customs.filter(item => item !== c);
+                if (updateUserCustomCategories) {
+                  await updateUserCustomCategories(user.uid, type, updated as string[]);
+                }
+                if (category === c) setCategory('');
+              } catch (err) {
+                console.error('Failed to remove custom category', err);
+              }
+            } }
+        ]
+      );
+    }
+  };
+
   // Calculate statistics
   const totalTransactions = transactions.length;
   const incomeTransactions = transactions.filter(t => t.type === 'income');
@@ -245,7 +298,11 @@ export default function TransactionsScreen() {
   }
 
   const renderHeader = () => (
-    <>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
+      style={{ width: '100%' }}
+    >
       {/* Header with Statistics */}
       <LinearGradient colors={['#0f766e', '#059669']} style={styles.headerGradient}>
         <View style={styles.headerContent}>
@@ -274,12 +331,7 @@ export default function TransactionsScreen() {
             </View>
           </View>
 
-          <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>Net Balance</Text>
-            <Text style={[styles.balanceAmount, { color: netBalance >= 0 ? '#10b981' : '#ef4444' }]}>
-              LKR {Math.abs(netBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Text>
-          </View>
+          {/* Net balance card removed to reduce header height and match Financial Goals banner */}
         </View>
       </LinearGradient>
 
@@ -336,7 +388,7 @@ export default function TransactionsScreen() {
                 {combinedCategories.map((c) => (
                   <TouchableOpacity 
                     key={c} 
-                    onPress={() => setCategory(c)} 
+                    onPress={() => handleCategoryTap(c)}
                     style={[styles.categoryChip, category === c && (type === 'expense' ? styles.categoryChipActiveExpense : styles.categoryChipActive)]}
                   >
                     <Text style={[styles.categoryChipText, category === c && styles.categoryChipTextActive]}>
@@ -359,6 +411,7 @@ export default function TransactionsScreen() {
                   value={customCategory}
                   onChangeText={setCustomCategory}
                   returnKeyType="done"
+                  blurOnSubmit={false}
                 />
                 <TouchableOpacity onPress={handleAddCustomCategory} style={styles.addCategoryButton}>
                   <Text style={styles.addCategoryButtonText}>Add</Text>
@@ -376,6 +429,7 @@ export default function TransactionsScreen() {
               value={description}
               onChangeText={setDescription}
               returnKeyType="next"
+              blurOnSubmit={false}
             />
           </View>
 
@@ -390,6 +444,7 @@ export default function TransactionsScreen() {
                 onChangeText={setAmount}
                 keyboardType="decimal-pad"
                 returnKeyType="next"
+                blurOnSubmit={false}
               />
             </View>
             <View style={styles.inputGroup}>
@@ -399,7 +454,7 @@ export default function TransactionsScreen() {
                 style={styles.dateInput}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text style={[styles.dateText, { color: date ? colors.textPrimary : colors.textSecondary }]}>
+                <Text style={[styles.dateText, { color: date ? colors.textPrimary : colors.textSecondary }]}> 
                   {date || 'Select date'}
                 </Text>
                 <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
@@ -476,7 +531,7 @@ export default function TransactionsScreen() {
           </View>
         </View>
       </View>
-    </>
+    </KeyboardAvoidingView>
   );
 
   const renderEmptyComponent = () => (
@@ -493,7 +548,11 @@ export default function TransactionsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Render header outside of FlatList so inputs aren't unmounted during virtualization */}
+      {renderHeader()}
+
       <FlatList
+        style={styles.flatList}
         data={filteredTransactions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -501,11 +560,18 @@ export default function TransactionsScreen() {
             <TransactionItem transaction={item} onDelete={onDelete} onEdit={onEdit} />
           </View>
         )}
-        ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyComponent}
         onRefresh={onRefresh}
         refreshing={refreshing}
-        contentContainerStyle={styles.flatListContent}
+  // Keep keyboard open while interacting with inputs in the header
+  keyboardShouldPersistTaps="always"
+  // Prevent scroll gestures from dismissing the keyboard
+  keyboardDismissMode="none"
+  // Allow nested scrolling (Android) and ensure the list can scroll independently
+  nestedScrollEnabled={true}
+  // Avoid unmounting header children during scroll/virtualization to preserve TextInput focus
+  removeClippedSubviews={false}
+  contentContainerStyle={styles.flatListContent}
         showsVerticalScrollIndicator={false}
       />
 
@@ -555,8 +621,9 @@ const styles = StyleSheet.create({
   headerGradient: {
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.md,
-    borderBottomLeftRadius: radius.lg,
-    borderBottomRightRadius: radius.lg,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+    overflow: 'hidden',
   },
   headerContent: {
     alignItems: 'center',
@@ -582,7 +649,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
-    marginBottom: spacing.md,
   },
   statBox: {
     alignItems: 'center',
@@ -967,6 +1033,9 @@ const styles = StyleSheet.create({
   },
   flatListContent: {
     paddingBottom: spacing.lg,
+  },
+  flatList: {
+    flex: 1,
   },
   transactionItemWrapper: {
     paddingHorizontal: spacing.md,

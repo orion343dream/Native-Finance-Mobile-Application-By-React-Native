@@ -37,25 +37,15 @@ export const LineChartBicolor: React.FC<Props> = ({
       return { x, y, v };
     });
 
-    // Build contiguous path for predicate (>=0 or <0)
-    const buildPath = (predicate: (p: { x: number; y: number; v: number }) => boolean) => {
-      let d = '';
-      let started = false;
-      for (let i = 0; i < points.length; i++) {
-        const p = points[i];
-        if (predicate(p)) {
-          if (!started) {
-            d += `M ${p.x} ${p.y}`;
-            started = true;
-          } else {
-            d += ` L ${p.x} ${p.y}`;
-          }
-        } else {
-          started = false;
-        }
-      }
-      return d;
-    };
+   const buildPath = (predicate: (p: typeof points[0]) => boolean) => {
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    const p = points[i];
+    d += ` L ${p.x} ${p.y}`;
+  }
+  return d;
+};
+
 
     const posPath = buildPath(p => p.v >= 0);
     const negPath = buildPath(p => p.v < 0);
