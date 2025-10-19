@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Native Finance – Mobile Application
 
 > Personal finance tracker built with Expo + React Native, Firebase Auth/Firestore/Storage, and a clean service architecture.
